@@ -2,7 +2,7 @@
 
 ## Coverage and provenance
 
-Updated through the user-supplied seven-prompt Claude conversation log, after GitHub publication. ChatGPT and the original handoff prompt below come from the supplied history file. Codex prompts 2 onward are copied directly from this task's user-message records, in chronological order, including whitespace, typos, duplicated pasted material, and the publication-choice response. Assistant answers are not relabeled as prompts, except when the user pasted them into a later user message. Tool calls and system instructions are excluded.
+Updated through the follow-up request to verify the six review findings, after GitHub publication. ChatGPT and the original handoff prompt below come from the supplied history file. Codex prompts 2 onward are copied directly from this task's user-message records, in chronological order, including whitespace, typos, duplicated pasted material, and the publication-choice response. Assistant answers are not relabeled as prompts, except when the user pasted them into a later user message. Tool calls and system instructions are excluded.
 
 The Claude section now contains the user-supplied seven-prompt conversation log in its stated order. Bracketed notes describe pasted or uploaded content; they are not prompt text. The original pasted response bodies and historical upload bytes are not reconstructed, and this record is not an independently retrieved Claude export.
 
@@ -550,6 +550,29 @@ can you overall explain me what's happening here and what's good/bad?
 please give me the log for my prompts here
 ```
 
+
+## Codex prompt 9: verify that review findings are addressed
+
+~~~~text
+### What's bad or weak
+
+**1. The prompt log is incomplete (the serious one).** The assignment says to turn in *all* prompts. Your conversations with me aren't in it. For an integrity-focused submission, this is the one flaw that could look bad rather than merely weak. It's easy to fix.
+
+**2. Your uncertainty idea got dropped.** We designed a way to handle measurements with error bars (e.g., "94% refusal rate, but with only 200 samples it could be 90% to 97%, which straddles the 95% threshold, so: indeterminate"). Codex didn't include it. The current version only handles uncertainty as text notes. That's acceptable, but you should say it's deferred to a future version.
+
+**3. It never says what assumptions it made.** The task tests handling ambiguity, but the README doesn't show the ambiguities you resolved. The choices are there, just invisible. Four lines fix this.
+
+**4. The auditor vouches for itself.** The report records the auditor's name and version, but anyone could write those. Nothing proves which program actually ran. That's a real gap for a verification format, so either fix it or list it as deferred.
+
+**5. The example is generic.** Invoice servers and backups read as ordinary IT compliance, not AI governance, which is your field. It works, and changing it would break all the hashes, so I'd just add a sentence saying the format is meant for things like AI model audits.
+
+**6. Cosmetic issues.** A few em dashes, and a filename mismatch.
+
+
+
+let's double check that all of this is addressed
+
+~~~~
 
 ## Additional prompts: append here
 
