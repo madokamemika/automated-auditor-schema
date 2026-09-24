@@ -28,6 +28,12 @@ The v0.5.0 fixes bind measured counts, Boolean facts and coverage to policy-sele
 
 Still outside scope: authentication of execution, truth of supplied labels, real sampling randomness, arbitrary narrative-claim verification and deployment authorization. The admissibility/provenance fields are assessor declarations, not independent guarantees. Broader choices about the adversary, consumer and statistical method remain with the author; see [open design discussion](https://github.com/madokamemika/automated-auditor-schema/issues/2).
 
+## AI assistance and attribution
+
+Veronica directs the work, reviews logs, and makes requests and decisions. ChatGPT, Claude, and Codex also generate ideas, make design and implementation choices, write artifacts, and review one another's work. This is AI-assisted design and execution, not solely human-originated design implemented by tools. A request or approval is not evidence that the user originated the underlying idea. Unknown origins remain unknown; the logs are not a complete independent transcript of every external conversation.
+
+For v0.5.0, Veronica requested the assurance concepts and fields. Claude proposed the Bayesian model; Codex selected implementation details, implemented it, wrote tests, and documented limitations. The validation class counts are synthetic values constructed by the AI tools, not user-supplied empirical data.
+
 ## Supporting material
 
 [Brief](BRIEF.md) · [OSCAL notes](references/oscal-notes.md) · [Original prompt history](prompts/chatgpt-prompts.md) · [Supplied Claude history](prompts/claude-prompts.md) · [Claude Code history](prompts/claude-code-prompts.md) · [Earlier pasted review](prompts/claude-review-pasted-text.txt)

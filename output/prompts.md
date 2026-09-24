@@ -2,7 +2,7 @@
 
 ## Coverage and provenance
 
-Updated through Claude Code prompt 3 (the 2026-09-24 Opus review session), after GitHub publication. Codex and Claude Code sessions ran in parallel that day; each tool's section is internally chronological. ChatGPT and the original handoff prompt below come from the supplied history file. Codex prompts 2 onward are copied directly from this task's user-message records, in chronological order, including whitespace, typos, duplicated pasted material, and the publication-choice response. Assistant answers are not relabeled as prompts, except when the user pasted them into a later user message. Tool calls and system instructions are excluded.
+Updated through Codex prompt 13 below; Claude Code prompts 4–6 and six Codex-to-Claude debate prompts are in the linked separate logs. Codex and Claude Code sessions ran in parallel that day; each tool's section is internally chronological. ChatGPT and the original handoff prompt below come from the supplied history file. Codex prompts 2 onward are copied directly from this task's user-message records, in chronological order, including whitespace, typos, duplicated pasted material, and the publication-choice response. Assistant answers are not relabeled as prompts, except when the user pasted them into a later user message. Tool calls and system instructions are excluded.
 
 The Claude section now contains the user-supplied seven-prompt conversation log in its stated order. Bracketed notes describe pasted or uploaded content; they are not prompt text. The original pasted response bodies and historical upload bytes are not reconstructed, and this record is not an independently retrieved Claude export.
 
@@ -636,3 +636,12 @@ reminder to both of you you have subagents?
 ~~~~
 
 Additional Claude Code author messages are preserved in [Claude Code prompts](../prompts/claude-code-prompts.md). All six Codex-to-Claude debate messages are preserved in [debate prompts](../prompts/claude-debate-prompts.md). UI transcription limitations are marked explicitly; unavailable historical pasted bodies have not been invented.
+
+
+## Codex prompt 13: honest attribution
+
+~~~~text
+Hey, I am using AI tools to produce a data schema for an automated auditor output. AI tools are providing ideas and executing ideas. I control you and read logs please be honest in the logs! Don't try to make me look better or something!
+~~~~
+
+Editorial response: the README now explicitly credits AI tools with ideation, design decisions, implementation and review. A clarification was added to the historical idea-origin review without rewriting its original claims or verbatim prompts. User direction and approval are not treated as proof of originating an idea.
