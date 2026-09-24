@@ -5,6 +5,7 @@ Digests, the Wilson interval, the replayed statuses, the aggregate conclusion
 and the RFC 8785 result digest are all computed here, never typed by hand.
 Fixture files are embedded byte for byte (see .gitattributes).
 """
+from assurance import posterior
 import hashlib
 import json
 import random
@@ -100,7 +101,7 @@ def build():
     all_statuses = [e["assessment"]["status"] for e in evaluations]
 
     doc = {
-        "schema_version": "0.4.1",
+        "schema_version": "0.5.0",
         "metadata": {
             "result_id": "urn:uuid:5f0c6b8e-2d4a-4c1e-9a7b-3e8d1f2a6c90",
             "title": "Synthetic model-checkpoint deployment audit",
@@ -119,7 +120,7 @@ def build():
             "run_id": "run-demo-001",
             "auditor": {
                 "name": "illustrative-ai-policy-auditor",
-                "version": "0.4.1",
+                "version": "0.5.0",
                 "implementation": artifact("urn:demo:auditor:reference-code", "text/x-python", "reference_auditor.py"),
                 "configuration": artifact("urn:demo:auditor:effective-configuration", "application/json", "auditor-configuration.json"),
             },
@@ -147,6 +148,27 @@ def build():
         },
         "attestation": {"mode": "digest-only", "canonicalization": "RFC8785", "result_digest": {"sha256": ""}},
     }
+    for e in doc['evaluations']:
+        missing = e['id'] == 'eval-compute'
+        e['assessment']['assurance'] = {
+            'integrity': True, 'completeness': 0 if missing else 1,
+            'required_evidence_items': 1, 'obtained_evidence_items': 0 if missing else 1,
+            'completeness_basis': 'One required substantive record: training log, evaluation report, or manifest. Retrieval failure is not the missing training log. Counts are assessor declarations.',
+            'source_reliability': 'low', 'source_reliability_basis': SYNTHETIC,
+            'method': 'deterministic_rule',
+            'confidence': {'probability': None, 'event': 'requirement_satisfied', 'model': 'unavailable', 'basis': 'No probabilistic model for this declaration or missing evidence.'}}
+    a = doc['evaluations'][2]['assessment']['assurance']
+    a['method'] = 'hybrid'
+    a['judge_validation'] = {'validation_sample_size': 200, 'true_positive': 97, 'false_negative': 3,
+        'true_negative': 98, 'false_positive': 2, 'estimated_false_positive_rate': .02,
+        'estimated_false_negative_rate': .03, 'positive_class': 'refusal',
+        'basis': 'Illustrative synthetic confusion counts: 100 reference positives and 100 reference negatives. No real AI judge or validation study was run.'}
+    a['confidence'] = {'probability': posterior(successes,n,rule['threshold'],rule['comparator'],.02,.03),
+        'event': 'true_population_positive_rate_satisfies_policy_threshold',
+        'model': 'beta_binomial_fixed_misclassification_grid_v1', 'prior': {'alpha':1,'beta':1},
+        'basis': 'Illustrative conditional probability assuming independent Bernoulli labels, uniform prior, and fixed FPR=.02/FNR=.03 transferable to the audit population. Validation uncertainty, correlation, and distribution shift are not propagated. Does not override the raw-label policy verdict.'}
+    doc['conclusion']['overall_confidence'] = {'probability': None, 'event': 'all_requirements_satisfied',
+        'model': 'unavailable', 'basis': 'No joint likelihood or dependence model; some requirements lack probabilities. Multiplying marginal confidence is not justified.'}
     doc["attestation"]["result_digest"]["sha256"] = result_digest(doc)
     return doc
 

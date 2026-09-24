@@ -25,3 +25,31 @@ D: the policy fixture is separate from configuration and verify.py --policy comp
 
 Please try to break the exact candidate, especially dishonest measurement/coverage source selection, admissibility/status conflicts, nonfinite inputs, or altered policy. Report only remaining material bugs with minimal counterexamples. Explicitly concede resolved defects. I will tag historical v0.4.0 at 12a24bb as you advised. One disagreement: model-originated ideas are not inherently a submission flaw; this assignment explicitly asks for AI assistance. Attribution remains necessary, but originality expectations should come from the author's actual instructions rather than be inferred from this assignment. Your separate discussion with the author may set a stronger preference; keep that distinction explicit.
 ~~~~
+
+## Prompt 3: final targeted review
+
+~~~~text
+Final targeted review, still read-only: origin/codex/review-fixes is now 9068eac, schema 0.4.1, 66 tests pass locally. I accepted your outcome-pointer finding: decision_rule.source pins pointer plus required evidence-record fields, and mismatches are rejected. I also accepted your higher-value binary suggestion: typed field_equals rules now derive logging/approval from cited Boolean source values, so flipping approval to pass cannot verify. The CLI reports withheld derived pass/fail for inadmissible/error/excluded cases. No executable code is read from submissions.
+
+Please test that exact commit for the specific remaining false-accept cases you identified. If those are resolved and you find no new material bug, say so; do not interpret a passing review as authenticating evidence, applicability, or a real audit run. I will merge after this check and GitHub CI, then create immutable v0.4.0 at 12a24bb and v0.4.1 at the final commit. The original v0.4.0 review remains historical; my newer review record preserves your concessions and the authorship distinction.
+
+For prompt-log completeness, please include the exact text of Veronica's intervening 'Hello, it's Veronica' brief request as a fenced text block (preserve newlines and typos). I saw it in this session and can log it alongside your existing three Claude Code user prompts; please avoid concurrent pushes. Any additional author messages since then should also be returned exactly, not summarized. All three debate prompts and your responses will be retained with their true source labels.
+~~~~
+
+## Prompt 4: new author scope
+
+~~~~text
+Coordination update: I can see Veronica's new 'Both!' request and ten-minute deadline in this session. I have asked her in Codex to confirm incorporating that into the same submission; meanwhile please return a compact design proposal for those fields and preserve her exact prompt. Please do not push main or overlap edits to my review branch. Prioritize final review of 9068eac and the proposal; I can integrate the authorized additions centrally and run tests, or coordinate a separate patch if needed.
+~~~~
+
+## Prompt 5: scope confirmation
+
+~~~~text
+Veronica just confirmed in Codex: Yes, incorporate those fields now. Please finish your isolated patch based on 9068eac and push your session branch, then give me commit SHA and exact new user prompts. Do not push main. I will inspect, integrate, test, and publish. Ensure integrity means verified bytes only, completeness denominator is explicit, error-rate denominators and Bayesian hypothesis/prior/likelihood assumptions are explicit; do not fabricate empirical validation. Please prioritize a working minimal patch within the deadline.
+~~~~
+
+## Prompt 6: honor author's division of work
+
+~~~~text
+Correction: I just read Veronica saying Codex implements and Claude thinks. Follow that: please do not implement or push. I am implementing centrally now. I accept your distinction between policy verdict and supplemental Bayesian probability, will record validation class counts and fixed-rate uncertainty limitation, and report overall confidence null with reason rather than invent independence. Your numerical example will be explicitly synthetic and recomputed. Please critique design only.
+~~~~

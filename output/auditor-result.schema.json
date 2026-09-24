@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/madokamemika/automated-auditor-schema/v0.4.1/output/auditor-result.schema.json",
+  "$id": "https://raw.githubusercontent.com/madokamemika/automated-auditor-schema/v0.5.0/output/auditor-result.schema.json",
   "title": "Automated Auditor Result MVP",
   "description": "Single subject, single run, one evaluation per declared requirement. JSON Schema covers structure only; output/README.md defines the mandatory semantic and integrity checks, implemented by tools/verify.py.",
   "type": "object",
@@ -17,63 +17,126 @@
     "attestation"
   ],
   "properties": {
-    "schema_version": {"const": "0.4.1"},
+    "schema_version": {
+      "const": "0.5.0"
+    },
     "metadata": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["result_id", "title", "generated_at", "synthetic"],
+      "required": [
+        "result_id",
+        "title",
+        "generated_at",
+        "synthetic"
+      ],
       "properties": {
         "result_id": {
           "type": "string",
           "pattern": "^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?![\\s\\S])",
           "description": "Globally unique result identifier. Local ids below are unique only within this document."
         },
-        "title": {"$ref": "#/$defs/text"},
-        "generated_at": {"$ref": "#/$defs/timestamp"},
-        "synthetic": {"type": "boolean"}
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "generated_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "synthetic": {
+          "type": "boolean"
+        }
       }
     },
     "subject": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "version", "scope", "artifact"],
+      "required": [
+        "id",
+        "name",
+        "version",
+        "scope",
+        "artifact"
+      ],
       "properties": {
-        "id": {"$ref": "#/$defs/id"},
-        "name": {"$ref": "#/$defs/text"},
-        "version": {"$ref": "#/$defs/text"},
-        "scope": {"$ref": "#/$defs/text"},
-        "artifact": {"$ref": "#/$defs/artifact"}
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "$ref": "#/$defs/text"
+        },
+        "version": {
+          "$ref": "#/$defs/text"
+        },
+        "scope": {
+          "$ref": "#/$defs/text"
+        },
+        "artifact": {
+          "$ref": "#/$defs/artifact"
+        }
       }
     },
     "audit_basis": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "version", "requirements"],
+      "required": [
+        "name",
+        "version",
+        "requirements"
+      ],
       "properties": {
-        "name": {"$ref": "#/$defs/text"},
-        "version": {"$ref": "#/$defs/text"},
+        "name": {
+          "$ref": "#/$defs/text"
+        },
+        "version": {
+          "$ref": "#/$defs/text"
+        },
         "source": {
           "$ref": "#/$defs/artifact",
           "description": "Optional digest of the external policy document the inline requirements were taken from."
         },
-        "requirements": {"type": "array", "items": {"$ref": "#/$defs/requirement"}, "minItems": 1}
+        "requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/requirement"
+          },
+          "minItems": 1
+        }
       },
       "description": "The complete normative basis for this result. Inline requirement texts and decision rules are authoritative for this MVP."
     },
     "execution": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["run_id", "auditor", "started_at", "ended_at", "environment"],
+      "required": [
+        "run_id",
+        "auditor",
+        "started_at",
+        "ended_at",
+        "environment"
+      ],
       "properties": {
-        "run_id": {"$ref": "#/$defs/id"},
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
         "auditor": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["name", "version", "implementation", "configuration"],
+          "required": [
+            "name",
+            "version",
+            "implementation",
+            "configuration"
+          ],
           "properties": {
-            "name": {"$ref": "#/$defs/text"},
-            "version": {"$ref": "#/$defs/text"},
-            "implementation": {"$ref": "#/$defs/artifact", "description": "Exact code, container or model artifact."},
+            "name": {
+              "$ref": "#/$defs/text"
+            },
+            "version": {
+              "$ref": "#/$defs/text"
+            },
+            "implementation": {
+              "$ref": "#/$defs/artifact",
+              "description": "Exact code, container or model artifact."
+            },
             "configuration": {
               "$ref": "#/$defs/artifact",
               "description": "Effective configuration; the single source of run parameters."
@@ -81,79 +144,176 @@
           },
           "description": "Digests identify declared inputs; they do not authenticate execution."
         },
-        "started_at": {"$ref": "#/$defs/timestamp"},
-        "ended_at": {"$ref": "#/$defs/timestamp"},
-        "environment": {"$ref": "#/$defs/text"}
+        "started_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "ended_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "environment": {
+          "$ref": "#/$defs/text"
+        }
       }
     },
-    "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}},
-    "evaluations": {"type": "array", "items": {"$ref": "#/$defs/evaluation"}, "minItems": 1},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence"
+      }
+    },
+    "evaluations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evaluation"
+      },
+      "minItems": 1
+    },
     "conclusion": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["aggregation", "status", "coverage_complete"],
+      "required": [
+        "aggregation",
+        "status",
+        "coverage_complete"
+      ],
       "properties": {
-        "aggregation": {"const": "all-requirements-v2"},
-        "status": {"$ref": "#/$defs/status"},
-        "coverage_complete": {"type": "boolean"}
+        "aggregation": {
+          "const": "all-requirements-v2"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "coverage_complete": {
+          "type": "boolean"
+        },
+        "overall_confidence": {
+          "$ref": "#/$defs/bayesian_confidence"
+        }
       },
       "description": "Derived from every evaluation under the rules in README; no independent narrative or selectable subset."
     },
     "attestation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["mode", "canonicalization", "result_digest"],
+      "required": [
+        "mode",
+        "canonicalization",
+        "result_digest"
+      ],
       "properties": {
-        "mode": {"const": "digest-only"},
-        "canonicalization": {"const": "RFC8785"},
-        "result_digest": {"$ref": "#/$defs/digest"}
+        "mode": {
+          "const": "digest-only"
+        },
+        "canonicalization": {
+          "const": "RFC8785"
+        },
+        "result_digest": {
+          "$ref": "#/$defs/digest"
+        }
       },
       "description": "SHA-256 of the RFC 8785 canonical form of the entire result with ONLY attestation.result_digest removed. A content identifier, not an authenticated signature; authenticity needs a detached signed envelope (see README)."
     }
   },
   "$defs": {
-    "text": {"type": "string", "minLength": 1},
-    "id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{0,63}(?![\\s\\S])"},
-    "timestamp": {"type": "string", "format": "date-time", "pattern": "Z(?![\\s\\S])", "description": "RFC 3339 in UTC."},
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]{0,63}(?![\\s\\S])"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z(?![\\s\\S])",
+      "description": "RFC 3339 in UTC."
+    },
     "digest": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["sha256"],
+      "required": [
+        "sha256"
+      ],
       "properties": {
-        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
-        "sha512": {"type": "string", "pattern": "^[0-9a-f]{128}(?![\\s\\S])"}
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "sha512": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{128}(?![\\s\\S])"
+        }
       },
       "description": "Algorithm-keyed digest set, compatible with the in-toto DigestSet shape. sha256 is mandatory; every listed digest must match."
     },
-    "status": {"enum": ["pass", "fail", "indeterminate", "error", "not_applicable", "not_tested"]},
+    "status": {
+      "enum": [
+        "pass",
+        "fail",
+        "indeterminate",
+        "error",
+        "not_applicable",
+        "not_tested"
+      ]
+    },
     "artifact": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["uri", "media_type", "digest"],
+      "required": [
+        "uri",
+        "media_type",
+        "digest"
+      ],
       "properties": {
         "uri": {
           "type": "string",
           "format": "uri",
           "description": "Identifier or retrieval hint; never trusted over the digest."
         },
-        "media_type": {"$ref": "#/$defs/text"},
-        "digest": {"$ref": "#/$defs/digest"},
-        "content": {"type": "string"}
+        "media_type": {
+          "$ref": "#/$defs/text"
+        },
+        "digest": {
+          "$ref": "#/$defs/digest"
+        },
+        "content": {
+          "type": "string"
+        }
       },
       "description": "Digest of exact artifact bytes. If content is present, bytes are UTF-8(content), with no normalization or added newline. Mirrors the in-toto ResourceDescriptor fields uri, digest, mediaType and content (as text)."
     },
     "requirement": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "criterion", "applicability"],
+      "required": [
+        "id",
+        "criterion",
+        "applicability"
+      ],
       "properties": {
-        "id": {"$ref": "#/$defs/id"},
-        "criterion": {"$ref": "#/$defs/text"},
-        "applicability": {"$ref": "#/$defs/text"},
-        "decision_rule": {"$ref": "#/$defs/decision_rule"},
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "criterion": {
+          "$ref": "#/$defs/text"
+        },
+        "applicability": {
+          "$ref": "#/$defs/text"
+        },
+        "decision_rule": {
+          "$ref": "#/$defs/decision_rule"
+        },
         "parameters": {
           "type": "object",
-          "additionalProperties": {"type": ["string", "number", "boolean", "null"]},
+          "additionalProperties": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+          },
           "description": "Policy-owned procedure parameters. Their procedural meaning requires a trusted procedure-specific verifier."
         }
       }
@@ -173,40 +333,99 @@
         "reliability_basis"
       ],
       "properties": {
-        "id": {"$ref": "#/$defs/id"},
-        "kind": {"enum": ["configuration", "document", "measurement", "execution_log"]},
-        "artifact": {"$ref": "#/$defs/artifact"},
-        "acquired_at": {"$ref": "#/$defs/timestamp"},
-        "acquisition_method": {"$ref": "#/$defs/text"},
-        "collector": {"$ref": "#/$defs/text"},
-        "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}},
-        "reliability": {"enum": ["independently_collected", "operator_supplied", "attested"]},
-        "reliability_basis": {"$ref": "#/$defs/text"}
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "configuration",
+            "document",
+            "measurement",
+            "execution_log"
+          ]
+        },
+        "artifact": {
+          "$ref": "#/$defs/artifact"
+        },
+        "acquired_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "acquisition_method": {
+          "$ref": "#/$defs/text"
+        },
+        "collector": {
+          "$ref": "#/$defs/text"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        },
+        "reliability": {
+          "enum": [
+            "independently_collected",
+            "operator_supplied",
+            "attested"
+          ]
+        },
+        "reliability_basis": {
+          "$ref": "#/$defs/text"
+        }
       },
       "description": "Reliability is a declared provenance category, not a trust score. Basis identifies the operator, independent collector, or attestation and verification limits. No digest for unavailable data: record the failed acquisition itself as evidence."
     },
     "observation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "claim", "evidence_refs"],
+      "required": [
+        "id",
+        "claim",
+        "evidence_refs"
+      ],
       "properties": {
-        "id": {"$ref": "#/$defs/id"},
-        "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/id"}, "minItems": 1, "uniqueItems": true},
-        "measurement": {"$ref": "#/$defs/measurement"},
-        "coverage": {"$ref": "#/$defs/coverage"},
-        "claim": {"$ref": "#/$defs/text"},
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "measurement": {
+          "$ref": "#/$defs/measurement"
+        },
+        "coverage": {
+          "$ref": "#/$defs/coverage"
+        },
+        "claim": {
+          "$ref": "#/$defs/text"
+        },
         "fact": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["value", "derivation"],
+          "required": [
+            "value",
+            "derivation"
+          ],
           "properties": {
-            "value": {"type": "boolean"},
+            "value": {
+              "type": "boolean"
+            },
             "derivation": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["evidence_ref", "pointer"],
+              "required": [
+                "evidence_ref",
+                "pointer"
+              ],
               "properties": {
-                "evidence_ref": {"$ref": "#/$defs/id"},
+                "evidence_ref": {
+                  "$ref": "#/$defs/id"
+                },
                 "pointer": {
                   "type": "string",
                   "pattern": "^(?:/(?:[^~/]|~[01])*)*(?![\\s\\S])",
@@ -220,112 +439,383 @@
         }
       },
       "description": "A checkable proposition including the observed value or state, grounded in cited evidence.",
-      "not": {"required": ["measurement", "fact"]}
+      "not": {
+        "required": [
+          "measurement",
+          "fact"
+        ]
+      }
     },
     "assessment": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["status", "observation_refs", "rationale", "limitations", "evidence_admissibility"],
+      "required": [
+        "status",
+        "observation_refs",
+        "rationale",
+        "limitations",
+        "evidence_admissibility"
+      ],
       "properties": {
-        "status": {"$ref": "#/$defs/status"},
-        "observation_refs": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true},
-        "rationale": {"$ref": "#/$defs/text"},
-        "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}},
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "observation_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "rationale": {
+          "$ref": "#/$defs/text"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        },
         "evidence_admissibility": {
-          "enum": ["admissible", "inadmissible", "not_assessed"],
+          "enum": [
+            "admissible",
+            "inadmissible",
+            "not_assessed"
+          ],
           "description": "Admissibility for the decision is a recorded assessor assertion, not independently established by the verifier. Inadmissible evidence yields indeterminate before numerical comparison."
+        },
+        "assurance": {
+          "$ref": "#/$defs/assurance"
         }
       }
     },
     "evaluation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "requirement_ref", "procedure", "observations", "assessment"],
+      "required": [
+        "id",
+        "requirement_ref",
+        "procedure",
+        "observations",
+        "assessment"
+      ],
       "properties": {
-        "id": {"$ref": "#/$defs/id"},
-        "requirement_ref": {"$ref": "#/$defs/id"},
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "requirement_ref": {
+          "$ref": "#/$defs/id"
+        },
         "procedure": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["method", "description"],
+          "required": [
+            "method",
+            "description"
+          ],
           "properties": {
-            "method": {"enum": ["examine", "interview", "test"], "description": "NIST SP 800-53A / OSCAL assessment methods."},
-            "description": {"$ref": "#/$defs/text"}
+            "method": {
+              "enum": [
+                "examine",
+                "interview",
+                "test"
+              ],
+              "description": "NIST SP 800-53A / OSCAL assessment methods."
+            },
+            "description": {
+              "$ref": "#/$defs/text"
+            }
           }
         },
-        "observations": {"type": "array", "items": {"$ref": "#/$defs/observation"}},
-        "assessment": {"$ref": "#/$defs/assessment"}
+        "observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/observation"
+          }
+        },
+        "assessment": {
+          "$ref": "#/$defs/assessment"
+        }
       },
       "allOf": [
         {
-          "if": {"properties": {"assessment": {"properties": {"status": {"enum": ["pass", "fail", "not_applicable"]}}}}},
+          "if": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "pass",
+                      "fail",
+                      "not_applicable"
+                    ]
+                  }
+                }
+              }
+            }
+          },
           "then": {
-            "properties": {"observations": {"minItems": 1}, "assessment": {"properties": {"observation_refs": {"minItems": 1}}}}
+            "properties": {
+              "observations": {
+                "minItems": 1
+              },
+              "assessment": {
+                "properties": {
+                  "observation_refs": {
+                    "minItems": 1
+                  }
+                }
+              }
+            }
           }
         },
         {
           "if": {
-            "properties": {"assessment": {"properties": {"status": {"enum": ["indeterminate", "error", "not_tested"]}}}}
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "indeterminate",
+                      "error",
+                      "not_tested"
+                    ]
+                  }
+                }
+              }
+            }
           },
-          "then": {"properties": {"assessment": {"properties": {"limitations": {"minItems": 1}}}}}
+          "then": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "limitations": {
+                    "minItems": 1
+                  }
+                }
+              }
+            }
+          }
         },
         {
-          "if": {"properties": {"assessment": {"properties": {"status": {"const": "not_tested"}}}}},
-          "then": {"properties": {"observations": {"maxItems": 0}}}
+          "if": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "status": {
+                    "const": "not_tested"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "observations": {
+                "maxItems": 0
+              }
+            }
+          }
         },
         {
           "properties": {
             "observations": {
-              "contains": {"anyOf": [{"required": ["measurement"]}, {"required": ["fact"]}]},
+              "contains": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "measurement"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "fact"
+                    ]
+                  }
+                ]
+              },
               "minContains": 0,
               "maxContains": 1
             }
           }
         },
         {
-          "if": {"properties": {"assessment": {"properties": {"status": {"enum": ["pass", "fail", "not_applicable"]}}}}},
-          "then": {"properties": {"assessment": {"properties": {"evidence_admissibility": {"const": "admissible"}}}}}
+          "if": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "pass",
+                      "fail",
+                      "not_applicable"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "evidence_admissibility": {
+                    "const": "admissible"
+                  }
+                }
+              }
+            }
+          }
         },
         {
-          "if": {"properties": {"assessment": {"properties": {"status": {"enum": ["error", "not_tested"]}}}}},
-          "then": {"properties": {"assessment": {"properties": {"evidence_admissibility": {"const": "not_assessed"}}}}}
+          "if": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "error",
+                      "not_tested"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "evidence_admissibility": {
+                    "const": "not_assessed"
+                  }
+                }
+              }
+            }
+          }
         },
         {
-          "if": {"properties": {"assessment": {"properties": {"evidence_admissibility": {"const": "not_assessed"}}}}},
-          "then": {"properties": {"assessment": {"properties": {"status": {"enum": ["error", "not_tested"]}}}}}
+          "if": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "evidence_admissibility": {
+                    "const": "not_assessed"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "error",
+                      "not_tested"
+                    ]
+                  }
+                }
+              }
+            }
+          }
         },
         {
-          "if": {"properties": {"assessment": {"properties": {"evidence_admissibility": {"const": "inadmissible"}}}}},
-          "then": {"properties": {"assessment": {"properties": {"status": {"const": "indeterminate"}}}}}
+          "if": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "evidence_admissibility": {
+                    "const": "inadmissible"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "assessment": {
+                "properties": {
+                  "status": {
+                    "const": "indeterminate"
+                  }
+                }
+              }
+            }
+          }
         }
       ]
     },
     "measurement": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["value", "unit", "successes", "interval", "derivation"],
+      "required": [
+        "value",
+        "unit",
+        "successes",
+        "interval",
+        "derivation"
+      ],
       "properties": {
-        "value": {"type": "number", "minimum": 0, "maximum": 1},
-        "unit": {"const": "proportion"},
-        "successes": {"type": "integer", "minimum": 0},
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "unit": {
+          "const": "proportion"
+        },
+        "successes": {
+          "type": "integer",
+          "minimum": 0
+        },
         "interval": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["lower", "upper", "level", "method", "sample_size"],
+          "required": [
+            "lower",
+            "upper",
+            "level",
+            "method",
+            "sample_size"
+          ],
           "properties": {
-            "lower": {"type": "number", "minimum": 0, "maximum": 1},
-            "upper": {"type": "number", "minimum": 0, "maximum": 1},
-            "level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
-            "method": {"const": "wilson_score"},
-            "sample_size": {"type": "integer", "minimum": 1}
+            "lower": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "upper": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "level": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "exclusiveMaximum": 1
+            },
+            "method": {
+              "const": "wilson_score"
+            },
+            "sample_size": {
+              "type": "integer",
+              "minimum": 1
+            }
           }
         },
         "derivation": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["evidence_ref", "pointer"],
+          "required": [
+            "evidence_ref",
+            "pointer"
+          ],
           "properties": {
-            "evidence_ref": {"$ref": "#/$defs/id"},
+            "evidence_ref": {
+              "$ref": "#/$defs/id"
+            },
             "pointer": {
               "type": "string",
               "pattern": "^(?:/(?:[^~/]|~[01])*)*(?![\\s\\S])",
@@ -340,18 +830,43 @@
     "coverage": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["examined", "population", "sampling", "seed", "derivation"],
+      "required": [
+        "examined",
+        "population",
+        "sampling",
+        "seed",
+        "derivation"
+      ],
       "properties": {
-        "examined": {"type": "integer", "minimum": 1},
-        "population": {"type": "integer", "minimum": 1},
-        "sampling": {"const": "simple_random_without_replacement"},
-        "seed": {"type": "integer", "minimum": 0},
+        "examined": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "population": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sampling": {
+          "const": "simple_random_without_replacement"
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
         "derivation": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["evidence_ref", "indices_pointer", "population_pointer", "seed_pointer", "sampling_pointer"],
+          "required": [
+            "evidence_ref",
+            "indices_pointer",
+            "population_pointer",
+            "seed_pointer",
+            "sampling_pointer"
+          ],
           "properties": {
-            "evidence_ref": {"$ref": "#/$defs/id"},
+            "evidence_ref": {
+              "$ref": "#/$defs/id"
+            },
             "indices_pointer": {
               "type": "string",
               "pattern": "^(?:/(?:[^~/]|~[01])*)*(?![\\s\\S])",
@@ -380,17 +895,48 @@
     "proportion_rule": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "comparator", "threshold", "basis", "interval_level", "interval_method", "source"],
+      "required": [
+        "kind",
+        "comparator",
+        "threshold",
+        "basis",
+        "interval_level",
+        "interval_method",
+        "source"
+      ],
       "properties": {
-        "comparator": {"enum": [">=", "<="]},
-        "threshold": {"type": "number", "minimum": 0, "maximum": 1},
-        "basis": {"enum": ["point_estimate", "interval_bounds"]},
-        "interval_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
-        "interval_method": {"const": "wilson_score"},
+        "comparator": {
+          "enum": [
+            ">=",
+            "<="
+          ]
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "basis": {
+          "enum": [
+            "point_estimate",
+            "interval_bounds"
+          ]
+        },
+        "interval_level": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "interval_method": {
+          "const": "wilson_score"
+        },
         "source": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["pointer", "record_matches"],
+          "required": [
+            "pointer",
+            "record_matches"
+          ],
           "properties": {
             "pointer": {
               "type": "string",
@@ -400,26 +946,53 @@
             "record_matches": {
               "type": "object",
               "minProperties": 1,
-              "additionalProperties": {"type": ["string", "number", "boolean", "null"]}
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "null"
+                ]
+              }
             }
           },
           "description": "Policy-selected outcome pointer and exact top-level evidence-record values required for an admissible decision."
         },
-        "kind": {"const": "proportion"}
+        "kind": {
+          "const": "proportion"
+        }
       },
       "description": "Policy-owned rule, fixed before evaluation. interval_bounds is a non-binary rule (guarded acceptance and rejection, the interval as guard band, indeterminate between); point_estimate is simple acceptance. Semantics in README."
     },
-    "decision_rule": {"oneOf": [{"$ref": "#/$defs/proportion_rule"}, {"$ref": "#/$defs/boolean_rule"}]},
+    "decision_rule": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/proportion_rule"
+        },
+        {
+          "$ref": "#/$defs/boolean_rule"
+        }
+      ]
+    },
     "boolean_rule": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "source", "equals"],
+      "required": [
+        "kind",
+        "source",
+        "equals"
+      ],
       "properties": {
-        "kind": {"const": "field_equals"},
+        "kind": {
+          "const": "field_equals"
+        },
         "source": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["pointer", "record_matches"],
+          "required": [
+            "pointer",
+            "record_matches"
+          ],
           "properties": {
             "pointer": {
               "type": "string",
@@ -429,14 +1002,188 @@
             "record_matches": {
               "type": "object",
               "minProperties": 1,
-              "additionalProperties": {"type": ["string", "number", "boolean", "null"]}
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "null"
+                ]
+              }
             }
           },
           "description": "Policy-selected outcome pointer and exact top-level evidence-record values required for an admissible decision."
         },
-        "equals": {"type": "boolean"}
+        "equals": {
+          "type": "boolean"
+        }
       },
       "description": "Policy-selected Boolean field equality; missing or unusable evidence is not a false Boolean."
+    },
+    "bayesian_confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "probability": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "event": {
+          "type": "string",
+          "minLength": 1
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "enum": [
+            "unavailable",
+            "beta_binomial_fixed_misclassification_grid_v1"
+          ]
+        },
+        "prior": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "alpha": {
+              "const": 1
+            },
+            "beta": {
+              "const": 1
+            }
+          },
+          "required": [
+            "alpha",
+            "beta"
+          ]
+        }
+      },
+      "required": [
+        "probability",
+        "event",
+        "basis",
+        "model"
+      ]
+    },
+    "assurance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "integrity": {
+          "type": "boolean",
+          "description": "Verifier checks cited bytes and subject binding, not authenticity."
+        },
+        "completeness": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "completeness_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required_evidence_items": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "obtained_evidence_items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_reliability": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "source_reliability_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "method": {
+          "enum": [
+            "deterministic_rule",
+            "ai_judge",
+            "human_review",
+            "hybrid"
+          ]
+        },
+        "judge_validation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "validation_sample_size": {
+              "type": "integer",
+              "minimum": 2
+            },
+            "true_positive": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "false_positive": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "true_negative": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "false_negative": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "estimated_false_positive_rate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "estimated_false_negative_rate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "positive_class": {
+              "type": "string",
+              "minLength": 1
+            },
+            "basis": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "validation_sample_size",
+            "true_positive",
+            "false_positive",
+            "true_negative",
+            "false_negative",
+            "estimated_false_positive_rate",
+            "estimated_false_negative_rate",
+            "positive_class",
+            "basis"
+          ]
+        },
+        "confidence": {
+          "$ref": "#/$defs/bayesian_confidence"
+        }
+      },
+      "required": [
+        "integrity",
+        "completeness",
+        "completeness_basis",
+        "required_evidence_items",
+        "obtained_evidence_items",
+        "source_reliability",
+        "source_reliability_basis",
+        "method",
+        "confidence"
+      ]
     }
   }
 }

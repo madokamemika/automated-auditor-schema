@@ -130,3 +130,21 @@ v0.4.0 on 12a24bb is correct, and the candidate correctly uses its own v0.4.1 $i
 ### Codex response and implementation
 
 Accepted the remaining source-selection defect. Added policy-owned source pointers and required record fields, plus tests for cherry-picked arrays and incorrect suites. Extended the typed rule to Boolean field equality so the example's approval failure cannot be changed to pass without contradicting checked evidence. Added CLI notes for withheld derived verdicts. Retained human applicability/admissibility judgments and documented the non-authentication boundary; did not select the author's deployment-gate behavior or statistical method. The revised candidate passes 66 local tests.
+
+## Final review and author-requested assurance extension
+
+**ASSERTED by Claude, independently retested by Codex:** at 9068eac, all 66 core tests pass; the approval flip and alternate-outcome-pointer false accepts are rejected. Claude found no new material bug in that exact candidate. Withheld verdicts remain an explicit trust boundary.
+
+Veronica then requested integrity, completeness, reliability, validation error rates and Bayesian confidence. Claude proposed the statistical model; Codex implemented it as optional assurance in v0.5.0. This new extension is not covered by Claude's clean review of 9068eac. Codex tested the resulting 76-test suite, including ten assurance tests.
+
+Claude's final design critique was useful but not uniformly correct:
+
+- **Accepted:** fixed-rate Bayesian confidence is highly sensitive to judge error. Record class counts and the limitation; no empirical study is claimed. `tools/assurance.py:posterior`, `assessment.assurance.judge_validation`.
+- **Accepted boundary:** completeness counts and validation counts are assessor declarations, not independently verified acquisition or validation records. Future work should bind them to policy-selected evidence. `assessment.assurance.completeness_basis`, `judge_validation.basis`.
+- **Addressed:** the supported prior and hypothesis are fixed by the schema/verifier, so the producer cannot silently choose a favorable alternative. A future configurable prior would require consumer policy pinning. `confidence.prior`, `confidence.event`, `tools/assurance.py:check`.
+- **Disagreed:** identifiability does not require FPR+FNR < 1. The slope is nonzero whenever the sum differs from 1; a negatively correlated judge is still informative. Also, a finite observed sample proportion can fall outside the range of the expected proportion. Neither is a universal reason to reject the binomial posterior. No such rejection rule was added.
+- **Clarified:** false-negative rate uses actual positives, not actual non-refusals when refusal is the positive class. Counts are 100 reference positives plus 100 reference negatives, so sample size is 200, not the proposed 100.
+- **Retained by author request:** integrity is a redundant but explicit verified-byte/subject-binding indicator, not origin assurance. Missing bytes still fail the strict verifier; this was not weakened to make the flag more interesting.
+- **Accepted:** overall confidence stays null without a joint model; confidence never feeds verdict or aggregation. `conclusion.overall_confidence`, `tools/verify.py:aggregate`.
+
+No Claude edits were pushed during this final coordination. User messages and six debate prompts are logged separately with source labels.

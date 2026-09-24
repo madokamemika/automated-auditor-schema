@@ -1,4 +1,4 @@
-# Automated auditor result · MVP 0.4.1
+# Automated auditor result · MVP 0.5.0
 
 **Encode a traceable evidence-to-judgment chain.** One subject, one run, one evaluation per requirement.
 
@@ -53,3 +53,15 @@ Artifacts hash exact UTF-8 `content` bytes without normalization. For result has
 Regenerate with `python3 tools/build_example.py`; run `python3 -m unittest discover tests`. Policy comes from `tools/fixtures/audit-policy.json`, separately from auditor configuration. Tests include tampering, false counts, policy substitution, invalid evidence, missing measurements and incomplete compute logs.
 
 [NIST OSCAL](https://pages.nist.gov/OSCAL/learn/concepts/layer/assessment/assessment-results/) informs evidence/observation separation; [NIST's Wilson reference](https://itl.nist.gov/div898/handbook/prc/section2/prc241.htm) informs intervals. No OSCAL, SLSA or in-toto conformance is claimed. See `prompts.md` for provenance and the repository review notes for cross-model debate.
+
+## Assurance: auditing AI and auditing with AI
+
+Version 0.5.0 adds optional `assessment.assurance`. The example includes it on every evaluation. `integrity` is checked against verified cited bytes and their subject binding; it proves neither authenticity nor truth. `completeness` equals obtained/required substantive evidence items, whose scope and counts are assessor declarations in `completeness_basis`. A failed retrieval does not count as the missing training log. This differs from sampling coverage. `source_reliability` is a low/medium/high assessor judgment with a stated basis, alongside evidence provenance.
+
+`method` distinguishes deterministic rules, AI judges, human review and hybrid methods. AI/hybrid assessments require `judge_validation`: sample size, confusion counts, positive-class definition, and basis. FPR = FP/(FP+TN); FNR = FN/(FN+TP). Both class denominators must be positive. The example uses **synthetic** counts (97 TP, 3 FN, 98 TN, 2 FP; n=200), not a performed validation study.
+
+`confidence` is supplemental Bayesian probability, not model self-confidence. The implemented model uses a Beta(1,1) prior and independent binomial observations with q = p(1−FNR)+(1−p)FPR. A deterministic 20,000-point midpoint grid computes posterior mass satisfying the policy threshold; the verifier recomputes it within 1e-6. FPR/FNR are fixed estimates: uncertainty in validation rates, population shift and correlation are not propagated. The grid is an illustrative numerical approximation, not a certified error bound. Rates and validation counts are declared inputs, not authenticated evidence.
+
+The policy verdict uses the original raw-label Wilson rule; Bayesian confidence uses additional judge-error assumptions and **never changes the verdict**. Probability is `null` with a reason when no likelihood model exists. `conclusion.overall_confidence` explicitly remains null: no joint model or independence assumption justifies multiplying probabilities across requirements. This is an explicit unknown, not zero confidence. Full judge-error uncertainty propagation and a joint model remain future work.
+
+**Sensitivity, not an uncertainty interval:** with FPR fixed at 0.02, changing assumed FNR from 0.01 to 0.03 to 0.06 changes the example posterior from 0.396 to 0.786 to 0.971. These are illustrative scenarios, not empirically established plausible bounds. The verifier fixes the uniform prior and event definition; it does not authenticate the assumed judge rates. The example's 0.786 must be read only as a conditional model calculation.

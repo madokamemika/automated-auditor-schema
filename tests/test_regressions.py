@@ -22,6 +22,10 @@ def refresh_artifact(artifact, record):
 class SemanticRegressions(unittest.TestCase):
     def setUp(self):
         self.doc = verify.load(verify.ROOT / 'output/example-result.json')
+        # These tests isolate the core profile; assurance has separate mutation tests.
+        for ev in self.doc['evaluations']:
+            ev['assessment'].pop('assurance', None)
+        reseal(self.doc)
         self.ev = evaluation(self.doc, 'eval-refusal')
 
     def assertRejected(self, text, policy=None):

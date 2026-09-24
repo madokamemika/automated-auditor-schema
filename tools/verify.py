@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reference verifier for automated auditor results (schema 0.4.1).
+"""Reference verifier for automated auditor results (schema 0.5.0).
 
 Implements the three-layer validation contract in output/README.md:
 structure (JSON Schema with format checking), semantics (cross-object rules
@@ -18,6 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from statistics import NormalDist
 
+import assurance
 import rfc8785
 from jsonschema import Draft202012Validator
 
@@ -309,7 +310,7 @@ def verify(doc, schema=None, expected_policy=None):
         if expected_policy is not None and rfc8785.dumps(doc["audit_basis"]) != rfc8785.dumps(expected_policy):
             return ["policy: audit_basis differs from the consumer-supplied policy"]
         integrity_errors = check_integrity(doc)
-        return integrity_errors if integrity_errors else check_semantics(doc)
+        return integrity_errors if integrity_errors else check_semantics(doc) + assurance.check(doc)
     except (ValueError, OverflowError, TypeError, UnicodeError) as exc:
         return [f"verification: unsupported value: {exc}"]
 

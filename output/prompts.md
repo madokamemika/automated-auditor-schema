@@ -620,3 +620,19 @@ go
 ## Additional prompts: append here
 
 Append subsequent user inputs verbatim, with tool and source attribution. Record attachment contents separately and do not reconstruct unavailable prompts.
+
+## Codex prompt 11: scope confirmation
+
+Response to Codex's question about incorporating the new assurance fields into the same submission:
+
+~~~~text
+Yes, incorporate those fields now
+~~~~
+
+## Codex prompt 12: subagent reminder
+
+~~~~text
+reminder to both of you you have subagents?
+~~~~
+
+Additional Claude Code author messages are preserved in [Claude Code prompts](../prompts/claude-code-prompts.md). All six Codex-to-Claude debate messages are preserved in [debate prompts](../prompts/claude-debate-prompts.md). UI transcription limitations are marked explicitly; unavailable historical pasted bodies have not been invented.
