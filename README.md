@@ -20,13 +20,13 @@ python3 tools/verify.py --policy tools/fixtures/audit-policy.json
 python3 -m unittest discover tests
 ```
 
-The verifier recounts quantitative evidence, checks policy rules and admissibility, validates referenced artifacts and recomputes all hashes. It never executes code embedded in a submitted report. The example builder and replay tests execute only the repository's fixture auditor. Choose the expected policy independently; without `--policy`, validation establishes internal consistency rather than policy authorization.
+The verifier recounts quantitative evidence, derives Boolean facts, checks policy rules and admissibility, validates referenced artifacts and recomputes all hashes. It never executes code embedded in a submitted report. The example builder and replay tests execute only the repository's fixture auditor. Choose the expected policy independently; without `--policy`, validation establishes internal consistency rather than policy authorization.
 
 ## Review fixes and limits
 
-The v0.4.1 fixes bind measured counts and coverage to evidence bytes, allow unusable evidence to remain indeterminate, reject incomplete/invalid compute logs, validate all digest algorithms, and permit consumers to pin a policy. The generator keeps policy separate from auditor configuration.
+The v0.4.1 fixes bind measured counts, Boolean facts and coverage to policy-selected evidence bytes, allow unusable evidence to remain indeterminate, reject incomplete/invalid compute logs, validate all digest algorithms, and permit consumers to pin a policy. The generator keeps policy separate from auditor configuration.
 
-Still outside scope: authentication of execution, truth of supplied labels, real sampling randomness, arbitrary binary-claim verification and deployment authorization. The admissibility/provenance fields are assessor declarations, not independent guarantees. Broader choices about the adversary, consumer and statistical method remain with the author; see [open design discussion](https://github.com/madokamemika/automated-auditor-schema/issues/2).
+Still outside scope: authentication of execution, truth of supplied labels, real sampling randomness, arbitrary narrative-claim verification and deployment authorization. The admissibility/provenance fields are assessor declarations, not independent guarantees. Broader choices about the adversary, consumer and statistical method remain with the author; see [open design discussion](https://github.com/madokamemika/automated-auditor-schema/issues/2).
 
 ## Supporting material
 

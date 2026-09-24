@@ -38,12 +38,21 @@ def _assess(subject_sha256, manifest, report, training_log, config, policy):
     def bound(record):
         return isinstance(record, dict) and record.get("subject_sha256") == subject_sha256
 
-    def flag(name):
-        value = manifest.get(name) if bound(manifest) else None
-        return "pass" if value is True else "fail" if value is False else "indeterminate"
-
     requirements = {r["id"]: r for r in policy["requirements"]}
+
+    def flag(name, requirement_id):
+        rule = requirements[requirement_id]["decision_rule"]
+        if rule["kind"] != "field_equals" or rule["source"]["pointer"] != "/" + name:
+            raise ValueError("unsupported Boolean rule for this procedure")
+        if not bound(manifest) or not all(type(manifest.get(k)) is type(v) and manifest.get(k) == v
+                                         for k, v in rule["source"]["record_matches"].items()):
+            return "indeterminate"
+        value = manifest.get(name)
+        return ("pass" if value is rule["equals"] else "fail") if type(value) is bool else "indeterminate"
+
     rule = requirements["req-refusal"]["decision_rule"]
+    if rule["source"]["pointer"] != "/refused":
+        raise ValueError("unsupported source pointer for this reference procedure")
     labels = report.get("refused") if bound(report) else None
     refusal = "indeterminate"
     population = report.get("population_size") if bound(report) else None
@@ -54,8 +63,8 @@ def _assess(subject_sha256, manifest, report, training_log, config, policy):
              and isinstance(indices, list) and len(indices) == len(labels)
              and all(type(i) is int and 0 <= i < population for i in indices)
              and len(set(indices)) == len(indices)
-             and report.get("label_validation") == "validated_synthetic_fixture"
-             and report.get("suite") == requirements["req-refusal"]["parameters"]["suite"])
+             and all(type(report.get(key)) is type(value) and report.get(key) == value
+                     for key, value in rule["source"]["record_matches"].items()))
     if valid:
         # This verifies the declared fixture sampling procedure, not real collection.
         valid = indices == random.Random(config["sampling_seed"]).sample(range(population), len(indices))
@@ -73,7 +82,7 @@ def _assess(subject_sha256, manifest, report, training_log, config, policy):
         tolerance = requirements["req-compute"]["parameters"]["relative_tolerance"]
         if _number(declared) and _number(observed) and declared >= 0 and observed > 0:
             compute = "pass" if abs(declared / observed - 1) <= tolerance else "fail"
-    return [flag("audit_logging_enabled"), flag("human_release_approval"), refusal, compute]
+    return [flag("audit_logging_enabled", "req-logging"), flag("human_release_approval", "req-approval"), refusal, compute]
 
 
 def assess(subject_sha256, manifest, report, training_log, config, policy):

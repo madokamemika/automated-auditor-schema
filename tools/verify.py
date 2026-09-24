@@ -185,16 +185,46 @@ def check_semantics(doc):
                     err(f"{where}/{obs['id']}: unresolved evidence ref {ref}")
                 cited_evidence.add(ref)
         measured = [o for o in ev["observations"] if "measurement" in o]
+        facts = [o for o in ev["observations"] if "fact" in o]
         rule = requirement.get("decision_rule") if requirement else None
-        if measured and not rule:
+        if measured and (not rule or rule["kind"] != "proportion"):
             err(f"{where}: measurement requires a policy decision_rule")
+        if facts and (not rule or rule["kind"] != "field_equals"):
+            err(f"{where}: Boolean fact requires a field_equals policy rule")
         decidable = assessment["status"] not in {"not_applicable", "not_tested", "error"} and assessment["evidence_admissibility"] == "admissible"
-        if rule and decidable and len(measured) != 1:
+        if rule and rule["kind"] == "proportion" and decidable and len(measured) != 1:
             err(f"{where}: an admissible quantitative decision_rule requires exactly one measurement")
+        if rule and rule["kind"] == "field_equals" and decidable and len(facts) != 1:
+            err(f"{where}: an admissible Boolean decision_rule requires exactly one fact")
+        for obs in facts:
+            fact = obs["fact"]
+            try:
+                record = derived_record(doc, obs, evidence, fact["derivation"])
+                value = pointer_value(record, fact["derivation"]["pointer"])
+                if type(value) is not bool or value is not fact["value"]:
+                    err(f"{where}: Boolean fact does not match cited evidence")
+                if rule and rule["kind"] == "field_equals":
+                    if fact["derivation"]["pointer"] != rule["source"]["pointer"]:
+                        err(f"{where}: fact pointer differs from policy source")
+                    if decidable:
+                        for key, expected in rule["source"]["record_matches"].items():
+                            if key not in record or rfc8785.dumps(record[key]) != rfc8785.dumps(expected):
+                                err(f"{where}: evidence record does not match policy source field {key}")
+                        derived = "pass" if value is rule["equals"] else "fail"
+                        if assessment["status"] != derived:
+                            err(f"{where}: Boolean status {assessment['status']} != derived {derived}")
+            except (KeyError, IndexError, ValueError, TypeError) as exc:
+                err(f"{where}: Boolean derivation: {exc}")
         for obs in measured:
             m, iv = obs["measurement"], obs["measurement"]["interval"]
             try:
                 record = derived_record(doc, obs, evidence, m["derivation"])
+                if rule and m["derivation"]["pointer"] != rule["source"]["pointer"]:
+                    err(f"{where}: measurement pointer differs from policy source")
+                if rule and decidable:
+                    for key, expected in rule["source"]["record_matches"].items():
+                        if key not in record or rfc8785.dumps(record[key]) != rfc8785.dumps(expected):
+                            err(f"{where}: evidence record does not match policy source field {key}")
                 labels = pointer_value(record, m["derivation"]["pointer"])
                 if (not isinstance(labels, list) or not labels
                         or any(type(x) is not int or x not in (0, 1) for x in labels)
@@ -215,7 +245,7 @@ def check_semantics(doc):
             coverage = obs.get("coverage")
             if coverage and not (coverage["examined"] == iv["sample_size"] <= coverage["population"]):
                 err(f"{where}: coverage must satisfy examined == sample_size <= population")
-            if rule:
+            if rule and rule["kind"] == "proportion":
                 if iv["level"] != rule["interval_level"] or iv["method"] != rule["interval_method"]:
                     err(f"{where}: measurement interval does not follow the requirement's decision_rule")
                 elif decidable:
@@ -296,14 +326,43 @@ def main(argv):
     failed = False
     for path in args.paths or [ROOT / "output" / "example-result.json"]:
         try:
-            errors = verify(load(path), schema, expected_policy)
+            doc = load(path)
+            errors = verify(doc, schema, expected_policy)
         except ValueError as exc:
             errors = [f"parse: {exc}"]
         failed |= bool(errors)
         print(f"{'FAIL' if errors else 'OK  '} {path}")
         for e in errors:
             print(f"     {e}")
+        if not errors:
+            for note in withheld_decisions(doc):
+                print(f"     {note}")
     return 1 if failed else 0
+
+
+def withheld_decisions(doc):
+    """Expose numerical/Boolean decisions withheld by an assessor; never override them."""
+    requirements = {r["id"]: r for r in doc["audit_basis"]["requirements"]}
+    notes = []
+    for ev in doc["evaluations"]:
+        a = ev["assessment"]
+        if a["status"] not in {"indeterminate", "error", "not_applicable"}:
+            continue
+        rule = requirements[ev["requirement_ref"]].get("decision_rule")
+        if not rule:
+            continue
+        for obs in ev["observations"]:
+            derived = None
+            if rule["kind"] == "proportion" and "measurement" in obs:
+                m = obs["measurement"]
+                lower, upper = wilson(m["successes"], m["interval"]["sample_size"], m["interval"]["level"])
+                derived = decide(rule, {"value": m["successes"] / m["interval"]["sample_size"],
+                                        "interval": {"lower": lower, "upper": upper}})
+            elif rule["kind"] == "field_equals" and "fact" in obs:
+                derived = "pass" if obs["fact"]["value"] is rule["equals"] else "fail"
+            if derived in {"pass", "fail"}:
+                notes.append(f"withheld: {ev['id']}: {derived}; recorded {a['status']} ({a['evidence_admissibility']})")
+    return notes
 
 
 if __name__ == "__main__":

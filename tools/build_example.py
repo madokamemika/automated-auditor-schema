@@ -93,6 +93,8 @@ def build():
             "assessment": {"status": statuses[3], "observation_refs": ["obs-compute-missing"], "rationale": "No logged compute total is available for comparison.", "limitations": ["Obtain and verify complete training logs before deciding whether the declaration is consistent."]},
         },
     ]
+    for e, field in zip(evaluations[:2], ["audit_logging_enabled", "human_release_approval"]):
+        e["observations"][0]["fact"] = {"value": manifest[field], "derivation": {"evidence_ref": "ev-manifest", "pointer": "/" + field}}
     for e in evaluations:
         e["assessment"]["evidence_admissibility"] = "inadmissible" if e["id"] == "eval-compute" else "admissible"
     all_statuses = [e["assessment"]["status"] for e in evaluations]

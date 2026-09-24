@@ -154,6 +154,56 @@ class SemanticRegressions(unittest.TestCase):
         self.assertRejected('!= derived indeterminate')
 
 
+    def test_cherry_picked_outcome_pointer_rejected(self):
+        a=self.doc['evidence'][1]['artifact'];record=json.loads(a['content']);record['favorable']=[1]*200
+        refresh_artifact(a,record)
+        self.set_numeric(200)
+        self.ev['observations'][0]['measurement']['derivation']['pointer']='/favorable'
+        self.ev['assessment']['status']='pass'
+        self.assertRejected('measurement pointer differs from policy')
+
+    def test_wrong_suite_rejected_by_pinned_source_rule(self):
+        a=self.doc['evidence'][1]['artifact'];record=json.loads(a['content']);record['suite']='wrong-suite'
+        refresh_artifact(a,record)
+        self.assertRejected('does not match policy source field suite')
+
+    def test_inadmissible_source_can_retain_diagnostic_measurement(self):
+        a=self.doc['evidence'][1]['artifact'];record=json.loads(a['content']);record['label_validation']='not_validated'
+        refresh_artifact(a,record)
+        self.ev['assessment']['evidence_admissibility']='inadmissible'
+        self.assertEqual(verify.verify(reseal(self.doc)),[])
+
+
+    def test_boolean_false_pass_rejected(self):
+        evaluation(self.doc,'eval-approval')['assessment']['status']='pass'
+        self.doc['conclusion']['status']='indeterminate'
+        self.assertRejected('Boolean status pass != derived fail')
+
+    def test_fabricated_boolean_value_rejected(self):
+        ev=evaluation(self.doc,'eval-approval');ev['observations'][0]['fact']['value']=True
+        ev['assessment']['status']='pass';self.doc['conclusion']['status']='indeterminate'
+        self.assertRejected('Boolean fact does not match cited evidence')
+
+    def test_boolean_cherry_picked_pointer_rejected(self):
+        ev=evaluation(self.doc,'eval-approval');ev['observations'][0]['fact'].update(value=True)
+        ev['observations'][0]['fact']['derivation']['pointer']='/audit_logging_enabled'
+        ev['assessment']['status']='pass';self.doc['conclusion']['status']='indeterminate'
+        self.assertRejected('fact pointer differs from policy')
+
+    def test_withheld_failure_is_visible(self):
+        ev=evaluation(self.doc,'eval-approval');ev['assessment'].update(status='indeterminate',evidence_admissibility='inadmissible')
+        self.doc['conclusion']['status']='indeterminate'
+        self.assertEqual(verify.verify(reseal(self.doc)),[])
+        self.assertTrue(any('eval-approval: fail' in note for note in verify.withheld_decisions(self.doc)))
+
+    def test_boolean_policy_changes_require_consumer_authorization(self):
+        policy=copy.deepcopy(self.doc['audit_basis'])
+        self.doc['audit_basis']['requirements'][1]['decision_rule']['equals']=False
+        evaluation(self.doc,'eval-approval')['assessment']['status']='pass'
+        self.doc['conclusion']['status']='indeterminate'
+        self.assertRejected('consumer-supplied policy',policy=policy)
+
+
 class AuditorRegressions(unittest.TestCase):
     setUp = base.ReplayTests.setUp
     assess = base.ReplayTests.assess

@@ -158,19 +158,6 @@
         }
       }
     },
-    "decision_rule": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["comparator", "threshold", "basis", "interval_level", "interval_method"],
-      "properties": {
-        "comparator": {"enum": [">=", "<="]},
-        "threshold": {"type": "number", "minimum": 0, "maximum": 1},
-        "basis": {"enum": ["point_estimate", "interval_bounds"]},
-        "interval_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
-        "interval_method": {"const": "wilson_score"}
-      },
-      "description": "Policy-owned rule, fixed before evaluation. interval_bounds is a non-binary rule (guarded acceptance and rejection, the interval as guard band, indeterminate between); point_estimate is simple acceptance. Semantics in README."
-    },
     "evidence": {
       "type": "object",
       "additionalProperties": false,
@@ -207,9 +194,33 @@
         "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/id"}, "minItems": 1, "uniqueItems": true},
         "measurement": {"$ref": "#/$defs/measurement"},
         "coverage": {"$ref": "#/$defs/coverage"},
-        "claim": {"$ref": "#/$defs/text"}
+        "claim": {"$ref": "#/$defs/text"},
+        "fact": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["value", "derivation"],
+          "properties": {
+            "value": {"type": "boolean"},
+            "derivation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["evidence_ref", "pointer"],
+              "properties": {
+                "evidence_ref": {"$ref": "#/$defs/id"},
+                "pointer": {
+                  "type": "string",
+                  "pattern": "^(?:/(?:[^~/]|~[01])*)*(?![\\s\\S])",
+                  "description": "RFC 6901 JSON Pointer into the cited JSON artifact."
+                }
+              },
+              "description": "Pointer to an array of integer 0/1 trial outcomes in cited JSON evidence bound by subject_sha256."
+            }
+          },
+          "description": "Boolean source value; pointer and equality are owned by the policy."
+        }
       },
-      "description": "A checkable proposition including the observed value or state, grounded in cited evidence."
+      "description": "A checkable proposition including the observed value or state, grounded in cited evidence.",
+      "not": {"required": ["measurement", "fact"]}
     },
     "assessment": {
       "type": "object",
@@ -263,7 +274,13 @@
           "then": {"properties": {"observations": {"maxItems": 0}}}
         },
         {
-          "properties": {"observations": {"contains": {"required": ["measurement"]}, "minContains": 0, "maxContains": 1}}
+          "properties": {
+            "observations": {
+              "contains": {"anyOf": [{"required": ["measurement"]}, {"required": ["fact"]}]},
+              "minContains": 0,
+              "maxContains": 1
+            }
+          }
         },
         {
           "if": {"properties": {"assessment": {"properties": {"status": {"enum": ["pass", "fail", "not_applicable"]}}}}},
@@ -359,6 +376,67 @@
         }
       },
       "description": "MVP sampling profile: examined distinct units from a named finite population identified by the evidence. Seed alone is not a reproducibility guarantee; retain the sampled unit identifiers."
+    },
+    "proportion_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "comparator", "threshold", "basis", "interval_level", "interval_method", "source"],
+      "properties": {
+        "comparator": {"enum": [">=", "<="]},
+        "threshold": {"type": "number", "minimum": 0, "maximum": 1},
+        "basis": {"enum": ["point_estimate", "interval_bounds"]},
+        "interval_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+        "interval_method": {"const": "wilson_score"},
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pointer", "record_matches"],
+          "properties": {
+            "pointer": {
+              "type": "string",
+              "pattern": "^(?:/(?:[^~/]|~[01])*)*(?![\\s\\S])",
+              "description": "RFC 6901 JSON Pointer into the cited JSON artifact."
+            },
+            "record_matches": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {"type": ["string", "number", "boolean", "null"]}
+            }
+          },
+          "description": "Policy-selected outcome pointer and exact top-level evidence-record values required for an admissible decision."
+        },
+        "kind": {"const": "proportion"}
+      },
+      "description": "Policy-owned rule, fixed before evaluation. interval_bounds is a non-binary rule (guarded acceptance and rejection, the interval as guard band, indeterminate between); point_estimate is simple acceptance. Semantics in README."
+    },
+    "decision_rule": {"oneOf": [{"$ref": "#/$defs/proportion_rule"}, {"$ref": "#/$defs/boolean_rule"}]},
+    "boolean_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "source", "equals"],
+      "properties": {
+        "kind": {"const": "field_equals"},
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pointer", "record_matches"],
+          "properties": {
+            "pointer": {
+              "type": "string",
+              "pattern": "^(?:/(?:[^~/]|~[01])*)*(?![\\s\\S])",
+              "description": "RFC 6901 JSON Pointer into the cited JSON artifact."
+            },
+            "record_matches": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {"type": ["string", "number", "boolean", "null"]}
+            }
+          },
+          "description": "Policy-selected outcome pointer and exact top-level evidence-record values required for an admissible decision."
+        },
+        "equals": {"type": "boolean"}
+      },
+      "description": "Policy-selected Boolean field equality; missing or unusable evidence is not a false Boolean."
     }
   }
 }
