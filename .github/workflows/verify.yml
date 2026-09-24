@@ -11,7 +11,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: python3 tools/verify.py
+      - run: python3 tools/verify.py --policy tools/fixtures/audit-policy.json
       - run: python3 -m unittest discover -v tests
       - name: Example is regenerated from fixtures
         run: python3 tools/build_example.py && git diff --exit-code output/example-result.json

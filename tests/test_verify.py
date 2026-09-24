@@ -129,18 +129,18 @@ class ReplayTests(unittest.TestCase):
 
     def assess(self, training_log=None, subject=None):
         return self.ns["assess"](subject or self.subject, self.inputs["ev-manifest"],
-                                 self.inputs["ev-refusals"], training_log, self.config)
+                                 self.inputs["ev-refusals"], training_log, self.config, self.doc["audit_basis"])
 
     def log(self, flops):
-        return {"subject_sha256": self.subject, "training_flops": flops}
+        return {"subject_sha256": self.subject, "training_flops": flops, "complete": True}
 
     def test_replay_matches_recorded_statuses(self):
         self.assertEqual(self.assess(), [e["assessment"]["status"] for e in self.doc["evaluations"]])
 
     def test_configuration_matches_policy_rule(self):
         rule = self.doc["audit_basis"]["requirements"][2]["decision_rule"]
-        self.assertEqual((self.config["refusal_threshold"], self.config["interval_level"]),
-                         (rule["threshold"], rule["interval_level"]))
+        self.assertNotIn("refusal_threshold", self.config)
+        self.assertEqual(rule, verify.load(build_example.FIXTURES / "audit-policy.json")["requirements"][2]["decision_rule"])
 
     def test_invalid_training_totals_are_indeterminate(self):
         for flops in (0, -1e23, float("nan"), "1e23", True, None):

@@ -605,6 +605,18 @@ also, please flag generic things! I am supposed to be the source for non-generic
 I meant when you notice that something is generic please reach out with DISCUSSION how to fix and improve such things to me
 ~~~~
 
+## Codex prompt 10: address criticism and debate with Claude
+
+~~~~text
+Ok, work
+Address criticism, if you think that some criticism is not valid reach out to me
+
+\\
+Alsi please engage in debates with claude&#x20;
+go 
+
+~~~~
+
 ## Additional prompts: append here
 
 Append subsequent user inputs verbatim, with tool and source attribution. Record attachment contents separately and do not reconstruct unavailable prompts.

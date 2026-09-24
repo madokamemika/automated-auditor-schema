@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reference verifier for automated auditor results (schema 0.4.0).
+"""Reference verifier for automated auditor results (schema 0.4.1).
 
 Implements the three-layer validation contract in output/README.md:
 structure (JSON Schema with format checking), semantics (cross-object rules
@@ -8,6 +8,7 @@ JSON Schema cannot express) and integrity (artifact and result digests).
 Usage: python3 tools/verify.py [result.json ...]
 Exit status 0 when every file passes, 1 otherwise.
 """
+import argparse
 import copy
 import hashlib
 import json
@@ -35,11 +36,43 @@ def _reject_duplicate_keys(pairs):
 
 def load(path):
     with open(path, encoding="utf-8") as f:
-        return json.load(f, object_pairs_hook=_reject_duplicate_keys)
+        return json.load(f, object_pairs_hook=_reject_duplicate_keys,
+                         parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f"non-JSON number: {value}")))
 
 
 def _time(value):
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+
+def pointer_value(value, pointer):
+    """Resolve RFC 6901 without executing code or fetching external resources."""
+    if not pointer:
+        return value
+    for token in pointer.split("/")[1:]:
+        token = token.replace("~1", "/").replace("~0", "~")
+        if isinstance(value, list):
+            if not token.isascii() or not token.isdecimal() or (len(token) > 1 and token[0] == "0"):
+                raise ValueError("invalid array index")
+            value = value[int(token)]
+        elif isinstance(value, dict):
+            value = value[token]
+        else:
+            raise ValueError("pointer traverses a scalar")
+    return value
+
+
+def derived_record(doc, obs, evidence, derivation):
+    ref = derivation["evidence_ref"]
+    if ref not in obs["evidence_refs"] or ref not in evidence:
+        raise ValueError("derivation must cite evidence referenced by the observation")
+    artifact = evidence[ref]["artifact"]
+    if artifact["media_type"] != "application/json" or "content" not in artifact:
+        raise ValueError("derivation requires embedded application/json evidence")
+    record = json.loads(artifact["content"], object_pairs_hook=_reject_duplicate_keys,
+                        parse_constant=lambda value: (_ for _ in ()).throw(ValueError(f"non-JSON number: {value}")))
+    if not isinstance(record, dict) or record.get("subject_sha256") != doc["subject"]["artifact"]["digest"]["sha256"]:
+        raise ValueError("derived evidence is not bound to this subject")
+    return record
 
 
 def wilson(successes, n, level):
@@ -48,7 +81,7 @@ def wilson(successes, n, level):
     denominator = 1 + z * z / n
     center = (p + z * z / (2 * n)) / denominator
     half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denominator
-    return center - half, center + half
+    return max(0.0, center - half), min(1.0, center + half)
 
 
 def decide(rule, measurement):
@@ -104,7 +137,9 @@ def check_semantics(doc):
     requirements = {r["id"]: r for r in doc["audit_basis"]["requirements"]}
     evidence = {e["id"]: e for e in doc["evidence"]}
 
-    ids = [doc["subject"]["id"], *requirements, *evidence]
+    ids = [doc["metadata"]["result_id"], doc["execution"]["run_id"], doc["subject"]["id"],
+           *(r["id"] for r in doc["audit_basis"]["requirements"]),
+           *(e["id"] for e in doc["evidence"])]
     for ev in doc["evaluations"]:
         ids += [ev["id"], *(o["id"] for o in ev["observations"])]
     duplicates = sorted({i for i in ids if ids.count(i) > 1})
@@ -125,16 +160,48 @@ def check_semantics(doc):
         if set(refs) != set(observations):
             err(f"{where}: assessment must cite exactly the evaluation's own observations")
         for obs in ev["observations"]:
+            coverage = obs.get("coverage")
+            if coverage and coverage["examined"] > coverage["population"]:
+                err(f"{where}: coverage examined exceeds population")
+            if coverage:
+                try:
+                    derivation = coverage["derivation"]
+                    record = derived_record(doc, obs, evidence, derivation)
+                    indices = pointer_value(record, derivation["indices_pointer"])
+                    population = pointer_value(record, derivation["population_pointer"])
+                    seed = pointer_value(record, derivation["seed_pointer"])
+                    sampling = pointer_value(record, derivation["sampling_pointer"])
+                    if (type(population) is not int or population < 1 or type(seed) is not int
+                            or not isinstance(indices, list)
+                            or any(type(i) is not int or not 0 <= i < population for i in indices)
+                            or len(indices) != len(set(indices))
+                            or len(indices) != coverage["examined"] or population != coverage["population"]
+                            or seed != coverage["seed"] or sampling != coverage["sampling"]):
+                        err(f"{where}: coverage does not match cited evidence")
+                except (KeyError, IndexError, ValueError, TypeError) as exc:
+                    err(f"{where}: coverage derivation: {exc}")
             for ref in obs["evidence_refs"]:
                 if ref not in evidence:
                     err(f"{where}/{obs['id']}: unresolved evidence ref {ref}")
                 cited_evidence.add(ref)
         measured = [o for o in ev["observations"] if "measurement" in o]
         rule = requirement.get("decision_rule") if requirement else None
-        if bool(rule) != bool(measured):
-            err(f"{where}: a measured observation is required exactly when the requirement has a decision_rule")
+        if measured and not rule:
+            err(f"{where}: measurement requires a policy decision_rule")
+        decidable = assessment["status"] not in {"not_applicable", "not_tested", "error"} and assessment["evidence_admissibility"] == "admissible"
+        if rule and decidable and len(measured) != 1:
+            err(f"{where}: an admissible quantitative decision_rule requires exactly one measurement")
         for obs in measured:
             m, iv = obs["measurement"], obs["measurement"]["interval"]
+            try:
+                record = derived_record(doc, obs, evidence, m["derivation"])
+                labels = pointer_value(record, m["derivation"]["pointer"])
+                if (not isinstance(labels, list) or not labels
+                        or any(type(x) is not int or x not in (0, 1) for x in labels)
+                        or sum(labels) != m["successes"] or len(labels) != iv["sample_size"]):
+                    err(f"{where}: measurement does not match cited evidence outcomes")
+            except (KeyError, IndexError, ValueError, TypeError) as exc:
+                err(f"{where}: measurement derivation: {exc}")
             if m["successes"] > iv["sample_size"]:
                 err(f"{where}: successes exceed sample_size")
                 continue
@@ -151,8 +218,12 @@ def check_semantics(doc):
             if rule:
                 if iv["level"] != rule["interval_level"] or iv["method"] != rule["interval_method"]:
                     err(f"{where}: measurement interval does not follow the requirement's decision_rule")
-                elif assessment["status"] != decide(rule, m):
-                    err(f"{where}: status {assessment['status']} != derived {decide(rule, m)}")
+                elif decidable:
+                    recomputed = {"value": m["successes"] / iv["sample_size"],
+                                  "interval": {"lower": lower, "upper": upper}}
+                    derived = decide(rule, recomputed)
+                    if assessment["status"] != derived:
+                        err(f"{where}: status {assessment['status']} != derived {derived}")
         if requirement is None:
             err(f"{where}: unresolved requirement_ref {ev['requirement_ref']}")
 
@@ -187,27 +258,45 @@ def check_integrity(doc):
         for algorithm, expected in artifact["digest"].items():
             if hashlib.new(algorithm, data).hexdigest() != expected:
                 errors.append(f"integrity: {path}: {algorithm} mismatch")
-    if result_digest(doc) != doc["attestation"]["result_digest"]["sha256"]:
-        errors.append("integrity: attestation.result_digest.sha256 mismatch")
+    body = copy.deepcopy(doc)
+    expected_digests = body["attestation"].pop("result_digest")
+    canonical = rfc8785.dumps(body)
+    for algorithm, expected in expected_digests.items():
+        if hashlib.new(algorithm, canonical).hexdigest() != expected:
+            errors.append(f"integrity: attestation.result_digest.{algorithm} mismatch")
     return errors
 
 
-def verify(doc, schema=None):
-    """Return a list of error strings; empty means the result verified."""
+def verify(doc, schema=None, expected_policy=None):
+    """Check structural/recorded-decision consistency and digests, not evidence truth or authenticity."""
     schema = schema or load(SCHEMA_PATH)
     errors = check_structure(doc, schema)
     if errors:
         return errors  # semantic checks assume a structurally valid document
-    return check_semantics(doc) + check_integrity(doc)
+    try:
+        # Reject values outside the JCS domain before arithmetic or timestamp parsing.
+        rfc8785.dumps(doc)
+        if expected_policy is not None and rfc8785.dumps(doc["audit_basis"]) != rfc8785.dumps(expected_policy):
+            return ["policy: audit_basis differs from the consumer-supplied policy"]
+        integrity_errors = check_integrity(doc)
+        return integrity_errors if integrity_errors else check_semantics(doc)
+    except (ValueError, OverflowError, TypeError, UnicodeError) as exc:
+        return [f"verification: unsupported value: {exc}"]
 
 
-def main(paths):
+def main(argv):
+    parser = argparse.ArgumentParser(description="Check record consistency and integrity, not authenticity or evidence truth.")
+    parser.add_argument("paths", nargs="*")
+    parser.add_argument("--policy", type=Path, help="Independently selected expected audit_basis JSON; never take this from the submitted result.")
+    args = parser.parse_args(argv)
+    expected_policy = load(args.policy) if args.policy else None
     schema = load(SCHEMA_PATH)
     Draft202012Validator.check_schema(schema)
+    print("Scope: record consistency and integrity; " + ("consumer policy pinned." if expected_policy is not None else "policy not independently pinned."))
     failed = False
-    for path in paths or [ROOT / "output" / "example-result.json"]:
+    for path in args.paths or [ROOT / "output" / "example-result.json"]:
         try:
-            errors = verify(load(path), schema)
+            errors = verify(load(path), schema, expected_policy)
         except ValueError as exc:
             errors = [f"parse: {exc}"]
         failed |= bool(errors)

@@ -1,6 +1,6 @@
 # Automated auditor output schema
 
-A compact, illustrative JSON Schema for a traceable evidence-to-judgment audit result. Current version: **0.4.0**. The example is synthetic, unsigned, and intended for schema exploration, not deployment as a production auditor.
+A compact, illustrative JSON Schema for a traceable evidence-to-judgment audit result. Version **0.4.1** includes a synthetic AI deployment example, a verifier, reproducible fixtures and regression tests. It is an unsigned prototype, not a production auditor or safety certification.
 
 ## Submission
 
@@ -9,27 +9,27 @@ A compact, illustrative JSON Schema for a traceable evidence-to-judgment audit r
 - [AI deployment audit example](output/example-result.json)
 - [AI prompt log](output/prompts.md)
 
-The example includes pass, fail, statistical indeterminacy, and indeterminacy caused by unavailable evidence. It embeds the subject, evidence, reference implementation, and configuration so their hashes can be recomputed.
+## Reproduce and verify
 
-Verify it yourself: `pip install -r requirements.txt && python3 tools/verify.py && python3 -m unittest discover tests`. `tools/build_example.py` regenerates the example from `tools/fixtures/`, so no digest is typed by hand.
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install -r requirements.txt
+python3 tools/build_example.py
+python3 tools/verify.py --policy tools/fixtures/audit-policy.json
+python3 -m unittest discover tests
+```
+
+The verifier recounts quantitative evidence, checks policy rules and admissibility, validates referenced artifacts and recomputes all hashes. It never executes code embedded in a submitted report. The example builder and replay tests execute only the repository's fixture auditor. Choose the expected policy independently; without `--policy`, validation establishes internal consistency rather than policy authorization.
+
+## Review fixes and limits
+
+The v0.4.1 fixes bind measured counts and coverage to evidence bytes, allow unusable evidence to remain indeterminate, reject incomplete/invalid compute logs, validate all digest algorithms, and permit consumers to pin a policy. The generator keeps policy separate from auditor configuration.
+
+Still outside scope: authentication of execution, truth of supplied labels, real sampling randomness, arbitrary binary-claim verification and deployment authorization. The admissibility/provenance fields are assessor declarations, not independent guarantees. Broader choices about the adversary, consumer and statistical method remain with the author; see [open design discussion](https://github.com/madokamemika/automated-auditor-schema/issues/2).
 
 ## Supporting material
 
-- [Assignment brief and addendum](BRIEF.md)
-- [OSCAL reference notes](references/oscal-notes.md)
-- [Original supplied prompt history](prompts/chatgpt-prompts.md)
-- [Pasted external review](prompts/claude-review-pasted-text.txt)
-- [User-supplied Claude prompt history](prompts/claude-prompts.md)
-- [Claude Code (Opus) session prompts](prompts/claude-code-prompts.md)
-- [Opus best-practices review, idea-origin ledger and open decisions](reviews/2026-09-24-opus-best-practices-review.md)
+[Brief](BRIEF.md) · [OSCAL notes](references/oscal-notes.md) · [Original prompt history](prompts/chatgpt-prompts.md) · [Supplied Claude history](prompts/claude-prompts.md) · [Claude Code history](prompts/claude-code-prompts.md) · [Earlier pasted review](prompts/claude-review-pasted-text.txt)
 
-The prompt log includes the current Codex task messages the user-supplied seven-prompt Claude history, and the Claude Code (Opus) session prompts. Bracketed notes identify pasted responses and file uploads; their original bodies and historical file versions are not reconstructed.
-
-## Known review findings
-
-The v0.3.0 findings are resolved in 0.4.0 and are verified by tests: decision rules are now policy-owned, the reference-code crash is fixed, and the verifier is committed. See the [Opus review](reviews/2026-09-24-opus-best-practices-review.md). Remaining limits:
-
-- Unsigned digests and declared evidence provenance do not authenticate an audit run. Signing is described (in-toto Statement plus DSSE), not implemented.
-- Whether a requirement's prose matches its decision rule, and whether evidence is fit for purpose, remain human review questions.
-- The embedded reference auditor is a fixture replayed on example inputs, not a production auditor.
-- The open design decisions in the review (trust model, AI-as-auditor label error, interval method, naming) await the author.
+The prompt log preserves available inputs and source attribution. Bracketed notes describe pasted responses and historical uploads; missing original content has not been reconstructed. Historical reviews are retained under `reviews/` and must be read against their stated versions.
