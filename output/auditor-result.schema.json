@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/madokamemika/automated-auditor-schema/v0.5.0/output/auditor-result.schema.json",
+  "$id": "https://raw.githubusercontent.com/madokamemika/automated-auditor-schema/v0.6.0/output/auditor-result.schema.json",
   "title": "Automated Auditor Result MVP",
   "description": "Single subject, single run, one evaluation per declared requirement. JSON Schema covers structure only; output/README.md defines the mandatory semantic and integrity checks, implemented by tools/verify.py.",
   "type": "object",
@@ -18,7 +18,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "0.5.0"
+      "const": "0.6.0"
     },
     "metadata": {
       "type": "object",
@@ -140,6 +140,70 @@
             "configuration": {
               "$ref": "#/$defs/artifact",
               "description": "Effective configuration; the single source of run parameters."
+            },
+            "judge_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "validation_sample_size": {
+                  "type": "integer",
+                  "minimum": 2
+                },
+                "true_positive": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "false_positive": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "true_negative": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "false_negative": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "estimated_false_positive_rate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "estimated_false_negative_rate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "positive_class": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "basis": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "validation_set": {
+                  "$ref": "#/$defs/artifact"
+                },
+                "validated_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "validation_sample_size",
+                "true_positive",
+                "false_positive",
+                "true_negative",
+                "false_negative",
+                "estimated_false_positive_rate",
+                "estimated_false_negative_rate",
+                "positive_class",
+                "basis",
+                "validation_set",
+                "validated_at"
+              ]
             }
           },
           "description": "Digests identify declared inputs; they do not authenticate execution."
@@ -188,6 +252,9 @@
         },
         "overall_confidence": {
           "$ref": "#/$defs/bayesian_confidence"
+        },
+        "agent_confidence": {
+          "$ref": "#/$defs/agent_confidence"
         }
       },
       "description": "Derived from every evaluation under the rules in README; no independent narrative or selectable subset."
@@ -486,6 +553,9 @@
         },
         "assurance": {
           "$ref": "#/$defs/assurance"
+        },
+        "agent_confidence": {
+          "$ref": "#/$defs/agent_confidence"
         }
       }
     },
@@ -960,6 +1030,44 @@
         },
         "kind": {
           "const": "proportion"
+        },
+        "bayesian_model": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "prior": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "alpha": {
+                  "const": 1
+                },
+                "beta": {
+                  "const": 1
+                }
+              },
+              "required": [
+                "alpha",
+                "beta"
+              ]
+            },
+            "event": {
+              "const": "true_population_positive_rate_satisfies_policy_threshold"
+            },
+            "positive_class": {
+              "type": "string",
+              "minLength": 1
+            },
+            "model": {
+              "const": "beta_binomial_fixed_misclassification_grid_v1"
+            }
+          },
+          "required": [
+            "prior",
+            "event",
+            "positive_class",
+            "model"
+          ]
         }
       },
       "description": "Policy-owned rule, fixed before evaluation. interval_bounds is a non-binary rule (guarded acceptance and rejection, the interval as guard band, indeterminate between); point_estimate is simple acceptance. Semantics in README."
@@ -1106,7 +1214,7 @@
           "type": "string",
           "minLength": 1
         },
-        "method": {
+        "judgment_source": {
           "enum": [
             "deterministic_rule",
             "ai_judge",
@@ -1114,62 +1222,7 @@
             "hybrid"
           ]
         },
-        "judge_validation": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "validation_sample_size": {
-              "type": "integer",
-              "minimum": 2
-            },
-            "true_positive": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "false_positive": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "true_negative": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "false_negative": {
-              "type": "integer",
-              "minimum": 0
-            },
-            "estimated_false_positive_rate": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            "estimated_false_negative_rate": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            "positive_class": {
-              "type": "string",
-              "minLength": 1
-            },
-            "basis": {
-              "type": "string",
-              "minLength": 1
-            }
-          },
-          "required": [
-            "validation_sample_size",
-            "true_positive",
-            "false_positive",
-            "true_negative",
-            "false_negative",
-            "estimated_false_positive_rate",
-            "estimated_false_negative_rate",
-            "positive_class",
-            "basis"
-          ]
-        },
-        "confidence": {
+        "posterior": {
           "$ref": "#/$defs/bayesian_confidence"
         }
       },
@@ -1181,8 +1234,87 @@
         "obtained_evidence_items",
         "source_reliability",
         "source_reliability_basis",
-        "method",
-        "confidence"
+        "judgment_source",
+        "posterior"
+      ]
+    },
+    "agent_confidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "elicitation": {
+          "enum": [
+            "verbalized",
+            "token_probability",
+            "ensemble_agreement"
+          ]
+        },
+        "calibration": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "enum": [
+                "uncalibrated",
+                "calibrated"
+              ]
+            },
+            "validation_artifact": {
+              "$ref": "#/$defs/artifact"
+            },
+            "brier_score": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "expected_calibration_error": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "status"
+          ],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "calibrated"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "validation_artifact"
+                ],
+                "anyOf": [
+                  {
+                    "required": [
+                      "brier_score"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "expected_calibration_error"
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "elicitation",
+        "calibration"
       ]
     }
   }

@@ -2,7 +2,7 @@
 
 ## Coverage and provenance
 
-Updated through Codex prompt 13 below; Claude Code prompts 4–6 and six Codex-to-Claude debate prompts are in the linked separate logs. Codex and Claude Code sessions ran in parallel that day; each tool's section is internally chronological. ChatGPT and the original handoff prompt below come from the supplied history file. Codex prompts 2 onward are copied directly from this task's user-message records, in chronological order, including whitespace, typos, duplicated pasted material, and the publication-choice response. Assistant answers are not relabeled as prompts, except when the user pasted them into a later user message. Tool calls and system instructions are excluded.
+Updated through Codex prompt 16 below; Claude Code prompts 4–6 and six Codex-to-Claude debate prompts are in the linked separate logs. Codex and Claude Code sessions ran in parallel that day; each tool's section is internally chronological. ChatGPT and the original handoff prompt below come from the supplied history file. Codex prompts 2 onward are copied directly from this task's user-message records, in chronological order, including whitespace, typos, duplicated pasted material, and the publication-choice response. Assistant answers are not relabeled as prompts, except when the user pasted them into a later user message. Tool calls and system instructions are excluded.
 
 The Claude section now contains the user-supplied seven-prompt conversation log in its stated order. Bracketed notes describe pasted or uploaded content; they are not prompt text. The original pasted response bodies and historical upload bytes are not reconstructed, and this record is not an independently retrieved Claude export.
 
@@ -645,3 +645,20 @@ Hey, I am using AI tools to produce a data schema for an automated auditor outpu
 ~~~~
 
 Editorial response: the README now explicitly credits AI tools with ideation, design decisions, implementation and review. A clarification was added to the historical idea-origin review without rewriting its original claims or verbatim prompts. User direction and approval are not treated as proof of originating an idea.
+
+## Codex prompts 14–16: completion and issue follow-up
+
+~~~~text
+hello are you done?
+~~~~
+
+~~~~text
+there are issues are they addressed
+~~~~
+
+~~~~text
+so finish things that are left&#x20;
+you have 5 mins
+~~~~
+
+Additional Claude prompts, including the error-rate and agent-confidence clarification, are preserved with their GitHub-comment source in [Claude Code prompts](../prompts/claude-code-prompts.md).

@@ -58,3 +58,30 @@ Please design this you guys have 10 minutes left than we submit
 ~~~~text
 hey, codex catched the implementation, you are the thinker here
 ~~~~
+
+
+## Claude Code prompt 7: read-only inspection and prompt logging
+
+Issued to a new Claude Code cloud session on 2026-09-24, after v0.5.0 was published on `main`. The session was asked to make no changes beyond this log entry. Copied from the session's user-message record, newlines preserved.
+
+~~~~text
+you are read only Fable
+check what s going on in the repo, fill out my prompt to the prompt log and return with the result of inspection
+~~~~
+
+## Additional Claude prompts relayed in GitHub issue #2
+
+Source: Claude's issue comment https://github.com/madokamemika/automated-auditor-schema/issues/2#issuecomment-5817840059. Text as supplied there; chronology relative to the separate Fable session is not independently established.
+
+~~~~text
+would you think the false negative/positive have sense as metrics here?
+~~~~
+
+~~~~text
+Each of the 200 responses gets a label (refusal or not) from a judge. Compare those labels with trusted human labels and you get a real confusion matrix, and false positive and false negative rates are the standard, meaningful summary of it.
+
+> automated auditor output
+!!!!!!!
+
+okay, coordinate deconfusion with codex but i still want agent to express confidence in things
+~~~~

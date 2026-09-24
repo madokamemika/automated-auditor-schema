@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reference verifier for automated auditor results (schema 0.5.0).
+"""Reference verifier for automated auditor results (schema 0.6.0).
 
 Implements the three-layer validation contract in output/README.md:
 structure (JSON Schema with format checking), semantics (cross-object rules

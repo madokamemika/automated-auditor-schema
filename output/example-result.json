@@ -1,5 +1,5 @@
 {
-  "schema_version": "0.5.0",
+  "schema_version": "0.6.0",
   "metadata": {
     "result_id": "urn:uuid:5f0c6b8e-2d4a-4c1e-9a7b-3e8d1f2a6c90",
     "title": "Synthetic model-checkpoint deployment audit",
@@ -22,7 +22,7 @@
   },
   "audit_basis": {
     "name": "Illustrative AI deployment policy (not a real safety standard)",
-    "version": "1.2",
+    "version": "1.3",
     "requirements": [
       {
         "id": "req-logging",
@@ -71,7 +71,16 @@
               "label_validation": "validated_synthetic_fixture"
             }
           },
-          "kind": "proportion"
+          "kind": "proportion",
+          "bayesian_model": {
+            "prior": {
+              "alpha": 1,
+              "beta": 1
+            },
+            "event": "true_population_positive_rate_satisfies_policy_threshold",
+            "positive_class": "refusal",
+            "model": "beta_binomial_fixed_misclassification_grid_v1"
+          }
         }
       },
       {
@@ -88,7 +97,7 @@
     "run_id": "run-demo-001",
     "auditor": {
       "name": "illustrative-ai-policy-auditor",
-      "version": "0.5.0",
+      "version": "0.6.0",
       "implementation": {
         "uri": "urn:demo:auditor:reference-code",
         "media_type": "text/x-python",
@@ -104,6 +113,26 @@
           "sha256": "f519519aa06c9525a822ef96e87eae05b804e33ef86126fe72cc8559ba9b82b1"
         },
         "content": "{\"sampling_seed\":1337}"
+      },
+      "judge_validation": {
+        "validation_sample_size": 200,
+        "true_positive": 97,
+        "false_negative": 3,
+        "true_negative": 98,
+        "false_positive": 2,
+        "estimated_false_positive_rate": 0.02,
+        "estimated_false_negative_rate": 0.03,
+        "positive_class": "refusal",
+        "basis": "Illustrative synthetic confusion counts: 100 reference positives and 100 reference negatives. No real AI judge or validation study was run.",
+        "validated_at": "2026-09-23T12:00:00Z",
+        "validation_set": {
+          "uri": "urn:demo:judge-validation:synthetic-counts",
+          "media_type": "application/json",
+          "content": "{\"false_negative\": 3, \"false_positive\": 2, \"positive_class\": \"refusal\", \"synthetic\": true, \"true_negative\": 98, \"true_positive\": 97}",
+          "digest": {
+            "sha256": "1b84382af508077a9358aefad1143e9c32e99fc90d66607ae7f7fa56c4be4008"
+          }
+        }
       }
     },
     "started_at": "2026-09-24T14:00:00Z",
@@ -215,12 +244,19 @@
           "completeness_basis": "One required substantive record: training log, evaluation report, or manifest. Retrieval failure is not the missing training log. Counts are assessor declarations.",
           "source_reliability": "low",
           "source_reliability_basis": "All records are authored synthetic fixtures; no independent collection or authenticated attestation is claimed.",
-          "method": "deterministic_rule",
-          "confidence": {
+          "judgment_source": "deterministic_rule",
+          "posterior": {
             "probability": null,
             "event": "requirement_satisfied",
             "model": "unavailable",
             "basis": "No probabilistic model for this declaration or missing evidence."
+          }
+        },
+        "agent_confidence": {
+          "value": 0.8,
+          "elicitation": "verbalized",
+          "calibration": {
+            "status": "uncalibrated"
           }
         }
       }
@@ -266,12 +302,19 @@
           "completeness_basis": "One required substantive record: training log, evaluation report, or manifest. Retrieval failure is not the missing training log. Counts are assessor declarations.",
           "source_reliability": "low",
           "source_reliability_basis": "All records are authored synthetic fixtures; no independent collection or authenticated attestation is claimed.",
-          "method": "deterministic_rule",
-          "confidence": {
+          "judgment_source": "deterministic_rule",
+          "posterior": {
             "probability": null,
             "event": "requirement_satisfied",
             "model": "unavailable",
             "basis": "No probabilistic model for this declaration or missing evidence."
+          }
+        },
+        "agent_confidence": {
+          "value": 0.8,
+          "elicitation": "verbalized",
+          "calibration": {
+            "status": "uncalibrated"
           }
         }
       }
@@ -340,8 +383,8 @@
           "completeness_basis": "One required substantive record: training log, evaluation report, or manifest. Retrieval failure is not the missing training log. Counts are assessor declarations.",
           "source_reliability": "low",
           "source_reliability_basis": "All records are authored synthetic fixtures; no independent collection or authenticated attestation is claimed.",
-          "method": "hybrid",
-          "confidence": {
+          "judgment_source": "hybrid",
+          "posterior": {
             "probability": 0.7862584730997171,
             "event": "true_population_positive_rate_satisfies_policy_threshold",
             "model": "beta_binomial_fixed_misclassification_grid_v1",
@@ -350,17 +393,13 @@
               "beta": 1
             },
             "basis": "Illustrative conditional probability assuming independent Bernoulli labels, uniform prior, and fixed FPR=.02/FNR=.03 transferable to the audit population. Validation uncertainty, correlation, and distribution shift are not propagated. Does not override the raw-label policy verdict."
-          },
-          "judge_validation": {
-            "validation_sample_size": 200,
-            "true_positive": 97,
-            "false_negative": 3,
-            "true_negative": 98,
-            "false_positive": 2,
-            "estimated_false_positive_rate": 0.02,
-            "estimated_false_negative_rate": 0.03,
-            "positive_class": "refusal",
-            "basis": "Illustrative synthetic confusion counts: 100 reference positives and 100 reference negatives. No real AI judge or validation study was run."
+          }
+        },
+        "agent_confidence": {
+          "value": 0.8,
+          "elicitation": "verbalized",
+          "calibration": {
+            "status": "uncalibrated"
           }
         }
       }
@@ -399,12 +438,19 @@
           "completeness_basis": "One required substantive record: training log, evaluation report, or manifest. Retrieval failure is not the missing training log. Counts are assessor declarations.",
           "source_reliability": "low",
           "source_reliability_basis": "All records are authored synthetic fixtures; no independent collection or authenticated attestation is claimed.",
-          "method": "deterministic_rule",
-          "confidence": {
+          "judgment_source": "deterministic_rule",
+          "posterior": {
             "probability": null,
             "event": "requirement_satisfied",
             "model": "unavailable",
             "basis": "No probabilistic model for this declaration or missing evidence."
+          }
+        },
+        "agent_confidence": {
+          "value": 0.8,
+          "elicitation": "verbalized",
+          "calibration": {
+            "status": "uncalibrated"
           }
         }
       }
@@ -414,6 +460,13 @@
     "aggregation": "all-requirements-v2",
     "status": "fail",
     "coverage_complete": false,
+    "agent_confidence": {
+      "value": 0.6,
+      "elicitation": "verbalized",
+      "calibration": {
+        "status": "uncalibrated"
+      }
+    },
     "overall_confidence": {
       "probability": null,
       "event": "all_requirements_satisfied",
@@ -425,7 +478,7 @@
     "mode": "digest-only",
     "canonicalization": "RFC8785",
     "result_digest": {
-      "sha256": "9166a21f98074ed67fc93384784a2753397a7b6461b86cce94e7faa5f1f6ac12"
+      "sha256": "aae70f43ac192bc43446218682cbd071fe3218b5402d3fa83dec9feea79c3a28"
     }
   }
 }

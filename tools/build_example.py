@@ -101,7 +101,7 @@ def build():
     all_statuses = [e["assessment"]["status"] for e in evaluations]
 
     doc = {
-        "schema_version": "0.5.0",
+        "schema_version": "0.6.0",
         "metadata": {
             "result_id": "urn:uuid:5f0c6b8e-2d4a-4c1e-9a7b-3e8d1f2a6c90",
             "title": "Synthetic model-checkpoint deployment audit",
@@ -120,7 +120,7 @@ def build():
             "run_id": "run-demo-001",
             "auditor": {
                 "name": "illustrative-ai-policy-auditor",
-                "version": "0.5.0",
+                "version": "0.6.0",
                 "implementation": artifact("urn:demo:auditor:reference-code", "text/x-python", "reference_auditor.py"),
                 "configuration": artifact("urn:demo:auditor:effective-configuration", "application/json", "auditor-configuration.json"),
             },
@@ -155,15 +155,26 @@ def build():
             'required_evidence_items': 1, 'obtained_evidence_items': 0 if missing else 1,
             'completeness_basis': 'One required substantive record: training log, evaluation report, or manifest. Retrieval failure is not the missing training log. Counts are assessor declarations.',
             'source_reliability': 'low', 'source_reliability_basis': SYNTHETIC,
-            'method': 'deterministic_rule',
-            'confidence': {'probability': None, 'event': 'requirement_satisfied', 'model': 'unavailable', 'basis': 'No probabilistic model for this declaration or missing evidence.'}}
+            'judgment_source': 'deterministic_rule',
+            'posterior': {'probability': None, 'event': 'requirement_satisfied', 'model': 'unavailable', 'basis': 'No probabilistic model for this declaration or missing evidence.'}}
     a = doc['evaluations'][2]['assessment']['assurance']
-    a['method'] = 'hybrid'
-    a['judge_validation'] = {'validation_sample_size': 200, 'true_positive': 97, 'false_negative': 3,
+    a['judgment_source'] = 'hybrid'
+    doc['execution']['auditor']['judge_validation'] = {'validation_sample_size': 200, 'true_positive': 97, 'false_negative': 3,
         'true_negative': 98, 'false_positive': 2, 'estimated_false_positive_rate': .02,
         'estimated_false_negative_rate': .03, 'positive_class': 'refusal',
         'basis': 'Illustrative synthetic confusion counts: 100 reference positives and 100 reference negatives. No real AI judge or validation study was run.'}
-    a['confidence'] = {'probability': posterior(successes,n,rule['threshold'],rule['comparator'],.02,.03),
+    j = doc['execution']['auditor']['judge_validation']
+    j['validated_at'] = '2026-09-23T12:00:00Z'
+    counts = {key:j[key] for key in ('true_positive','false_positive','true_negative','false_negative','positive_class')}
+    counts['synthetic'] = True
+    content = json.dumps(counts, sort_keys=True)
+    j['validation_set'] = {'uri':'urn:demo:judge-validation:synthetic-counts', 'media_type':'application/json',
+        'content':content, 'digest':{'sha256':hashlib.sha256(content.encode()).hexdigest()}}
+    # Demonstration values authored by AI, not outputs of an actual judge run.
+    for e in doc['evaluations']:
+        e['assessment']['agent_confidence'] = {'value':.8, 'elicitation':'verbalized', 'calibration':{'status':'uncalibrated'}}
+    doc['conclusion']['agent_confidence'] = {'value':.6, 'elicitation':'verbalized', 'calibration':{'status':'uncalibrated'}}
+    a['posterior'] = {'probability': posterior(successes,n,rule['threshold'],rule['comparator'],.02,.03),
         'event': 'true_population_positive_rate_satisfies_policy_threshold',
         'model': 'beta_binomial_fixed_misclassification_grid_v1', 'prior': {'alpha':1,'beta':1},
         'basis': 'Illustrative conditional probability assuming independent Bernoulli labels, uniform prior, and fixed FPR=.02/FNR=.03 transferable to the audit population. Validation uncertainty, correlation, and distribution shift are not propagated. Does not override the raw-label policy verdict.'}
