@@ -574,6 +574,27 @@ let's double check that all of this is addressed
 
 ~~~~
 
+## Claude Code prompt 1: research best practices, improve, log prompts, push to main
+
+Issued to Claude Code (cloud session) on 2026-09-24, on the repository as published at v0.3.0.
+
+~~~~text
+okay we work on this and we improve this
+You are doing wide research on best practices regarding this type of schemas and if something is wrong you flag it to me
+Try to think in the way I would in the ideal conditions and honestly do log of MY prompts in the correspomding folder
+push everything to main
+~~~~
+
+## Claude Code prompt 2: flag generic ideas; issues for Codex
+
+Sent while prompt 1 was being worked on, in the same session.
+
+~~~~text
+also, please flag generic things! I am supposed to be the source for non-generic ideas!
+Also please feel free to create comments for codex and leave comments for codex in the issues for the repo
+For such things indicate yourself as Opus and indicate Codex as Astra
+~~~~
+
 ## Additional prompts: append here
 
 Append subsequent user inputs verbatim, with tool and source attribution. Record attachment contents separately and do not reconstruct unavailable prompts.

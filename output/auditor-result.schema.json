@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:automated-auditor:result:0.3.0",
+  "$id": "https://raw.githubusercontent.com/madokamemika/automated-auditor-schema/v0.4.0/output/auditor-result.schema.json",
   "title": "Automated Auditor Result MVP",
-  "description": "Single subject, single run, one evaluation per declared requirement. See README for mandatory semantic and integrity checks.",
+  "description": "Single subject, single run, one evaluation per declared requirement. JSON Schema covers structure only; output/README.md defines the mandatory semantic and integrity checks, implemented by tools/verify.py.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,15 +17,15 @@
     "attestation"
   ],
   "properties": {
-    "schema_version": {"const": "0.3.0"},
+    "schema_version": {"const": "0.4.0"},
     "metadata": {
       "type": "object",
       "additionalProperties": false,
       "required": ["result_id", "title", "generated_at", "synthetic"],
       "properties": {
-        "result_id": {"$ref": "#/$defs/id"},
+        "result_id": {"type": "string", "pattern": "^urn:uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?![\\s\\S])", "description": "Globally unique result identifier. Local ids below are unique only within this document."},
         "title": {"$ref": "#/$defs/text"},
-        "generated_at": {"type": "string", "format": "date-time"},
+        "generated_at": {"$ref": "#/$defs/timestamp"},
         "synthetic": {"type": "boolean"}
       }
     },
@@ -48,46 +48,42 @@
       "properties": {
         "name": {"$ref": "#/$defs/text"},
         "version": {"$ref": "#/$defs/text"},
+        "source": {"$ref": "#/$defs/artifact", "description": "Optional digest of the external policy document the inline requirements were taken from."},
         "requirements": {"type": "array", "items": {"$ref": "#/$defs/requirement"}, "minItems": 1}
       },
-      "description": "The complete normative basis for this result; criterion and applicability texts are authoritative for this MVP."
+      "description": "The complete normative basis for this result. Inline requirement texts and decision rules are authoritative for this MVP."
     },
     "execution": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["run_id", "auditor", "started_at", "ended_at", "parameters", "environment"],
+      "required": ["run_id", "auditor", "started_at", "ended_at", "environment"],
       "properties": {
         "run_id": {"$ref": "#/$defs/id"},
         "auditor": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["name", "version", "artifacts"],
+          "required": ["name", "version", "implementation", "configuration"],
           "properties": {
             "name": {"$ref": "#/$defs/text"},
             "version": {"$ref": "#/$defs/text"},
-            "artifacts": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["implementation", "configuration"],
-              "properties": {"implementation": {"$ref": "#/$defs/artifact"}, "configuration": {"$ref": "#/$defs/artifact"}},
-              "description": "Exact code, container or model artifact and effective configuration. Digests identify declared inputs; they do not authenticate execution."
-            }
-          }
+            "implementation": {"$ref": "#/$defs/artifact", "description": "Exact code, container or model artifact."},
+            "configuration": {"$ref": "#/$defs/artifact", "description": "Effective configuration; the single source of run parameters."}
+          },
+          "description": "Digests identify declared inputs; they do not authenticate execution."
         },
-        "started_at": {"type": "string", "format": "date-time"},
-        "ended_at": {"type": "string", "format": "date-time"},
-        "parameters": {"type": "object", "additionalProperties": {"type": ["string", "number", "boolean", "null"]}},
+        "started_at": {"$ref": "#/$defs/timestamp"},
+        "ended_at": {"$ref": "#/$defs/timestamp"},
         "environment": {"$ref": "#/$defs/text"}
       }
     },
-    "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}, "minItems": 0},
+    "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}},
     "evaluations": {"type": "array", "items": {"$ref": "#/$defs/evaluation"}, "minItems": 1},
     "conclusion": {
       "type": "object",
       "additionalProperties": false,
       "required": ["aggregation", "status", "coverage_complete"],
       "properties": {
-        "aggregation": {"const": "all-requirements-v1"},
+        "aggregation": {"const": "all-requirements-v2"},
         "status": {"$ref": "#/$defs/status"},
         "coverage_complete": {"type": "boolean"}
       },
@@ -96,31 +92,41 @@
     "attestation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["mode", "canonicalization", "result_sha256"],
+      "required": ["mode", "canonicalization", "result_digest"],
       "properties": {
         "mode": {"const": "digest-only"},
         "canonicalization": {"const": "RFC8785"},
-        "result_sha256": {"$ref": "#/$defs/sha256"}
+        "result_digest": {"$ref": "#/$defs/digest"}
       },
-      "description": "SHA-256 of RFC8785 canonicalized entire result with ONLY attestation.result_sha256 removed. Integrity commitment, not an authenticated signature."
+      "description": "SHA-256 of the RFC 8785 canonical form of the entire result with ONLY attestation.result_digest removed. A content identifier, not an authenticated signature; authenticity needs a detached signed envelope (see README)."
     }
   },
   "$defs": {
     "text": {"type": "string", "minLength": 1},
     "id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{0,63}(?![\\s\\S])"},
-    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "minLength": 64, "maxLength": 64},
-    "status": {"enum": ["pass", "fail", "indeterminate", "not_applicable", "not_tested"]},
+    "timestamp": {"type": "string", "format": "date-time", "pattern": "Z(?![\\s\\S])", "description": "RFC 3339 in UTC."},
+    "digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256"],
+      "properties": {
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}(?![\\s\\S])"},
+        "sha512": {"type": "string", "pattern": "^[0-9a-f]{128}(?![\\s\\S])"}
+      },
+      "description": "Algorithm-keyed digest set, compatible with the in-toto DigestSet shape. sha256 is mandatory; every listed digest must match."
+    },
+    "status": {"enum": ["pass", "fail", "indeterminate", "error", "not_applicable", "not_tested"]},
     "artifact": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["locator", "media_type", "sha256"],
+      "required": ["uri", "media_type", "digest"],
       "properties": {
-        "locator": {"type": "string", "format": "uri"},
+        "uri": {"type": "string", "format": "uri", "description": "Identifier or retrieval hint; never trusted over the digest."},
         "media_type": {"$ref": "#/$defs/text"},
-        "sha256": {"$ref": "#/$defs/sha256"},
+        "digest": {"$ref": "#/$defs/digest"},
         "content": {"type": "string"}
       },
-      "description": "Digest of exact artifact bytes. If content is present, bytes are UTF-8(content), with no normalization or added newline."
+      "description": "Digest of exact artifact bytes. If content is present, bytes are UTF-8(content), with no normalization or added newline. Mirrors the in-toto ResourceDescriptor fields uri, digest, mediaType and content (as text)."
     },
     "requirement": {
       "type": "object",
@@ -129,8 +135,22 @@
       "properties": {
         "id": {"$ref": "#/$defs/id"},
         "criterion": {"$ref": "#/$defs/text"},
-        "applicability": {"$ref": "#/$defs/text"}
+        "applicability": {"$ref": "#/$defs/text"},
+        "decision_rule": {"$ref": "#/$defs/decision_rule"}
       }
+    },
+    "decision_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["comparator", "threshold", "basis", "interval_level", "interval_method"],
+      "properties": {
+        "comparator": {"enum": [">=", "<="]},
+        "threshold": {"type": "number", "minimum": 0, "maximum": 1},
+        "basis": {"enum": ["point_estimate", "interval_bounds"]},
+        "interval_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+        "interval_method": {"const": "wilson_score"}
+      },
+      "description": "Policy-owned rule, fixed before evaluation. interval_bounds is guarded acceptance (the interval is the guard band); point_estimate is simple acceptance. Semantics in README."
     },
     "evidence": {
       "type": "object",
@@ -150,14 +170,14 @@
         "id": {"$ref": "#/$defs/id"},
         "kind": {"enum": ["configuration", "document", "measurement", "execution_log"]},
         "artifact": {"$ref": "#/$defs/artifact"},
-        "acquired_at": {"type": "string", "format": "date-time"},
+        "acquired_at": {"$ref": "#/$defs/timestamp"},
         "acquisition_method": {"$ref": "#/$defs/text"},
         "collector": {"$ref": "#/$defs/text"},
-        "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}, "minItems": 0},
+        "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}},
         "reliability": {"enum": ["independently_collected", "operator_supplied", "attested"]},
         "reliability_basis": {"$ref": "#/$defs/text"}
       },
-      "description": "Reliability is a declared provenance category, not a trust score. Basis identifies the operator, independent collector, or attestation and verification limits. No digest for unavailable data."
+      "description": "Reliability is a declared provenance category, not a trust score. Basis identifies the operator, independent collector, or attestation and verification limits. No digest for unavailable data: record the failed acquisition itself as evidence."
     },
     "observation": {
       "type": "object",
@@ -170,6 +190,7 @@
         "coverage": {"$ref": "#/$defs/coverage"},
         "claim": {"$ref": "#/$defs/text"}
       },
+      "dependentRequired": {"coverage": ["measurement"]},
       "description": "A checkable proposition including the observed value or state, grounded in cited evidence."
     },
     "assessment": {
@@ -178,10 +199,9 @@
       "required": ["status", "observation_refs", "rationale", "limitations"],
       "properties": {
         "status": {"$ref": "#/$defs/status"},
-        "observation_refs": {"type": "array", "items": {"$ref": "#/$defs/id"}, "minItems": 0, "uniqueItems": true},
+        "observation_refs": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true},
         "rationale": {"$ref": "#/$defs/text"},
-        "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}, "minItems": 0},
-        "decision_rule": {"$ref": "#/$defs/decision_rule"}
+        "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}}
       }
     },
     "evaluation": {
@@ -195,9 +215,12 @@
           "type": "object",
           "additionalProperties": false,
           "required": ["method", "description"],
-          "properties": {"method": {"enum": ["inspect", "test", "interview"]}, "description": {"$ref": "#/$defs/text"}}
+          "properties": {
+            "method": {"enum": ["examine", "interview", "test"], "description": "NIST SP 800-53A / OSCAL assessment methods."},
+            "description": {"$ref": "#/$defs/text"}
+          }
         },
-        "observations": {"type": "array", "items": {"$ref": "#/$defs/observation"}, "minItems": 0},
+        "observations": {"type": "array", "items": {"$ref": "#/$defs/observation"}},
         "assessment": {"$ref": "#/$defs/assessment"}
       },
       "allOf": [
@@ -208,17 +231,15 @@
           }
         },
         {
-          "if": {"properties": {"assessment": {"properties": {"status": {"enum": ["indeterminate", "not_tested"]}}}}},
+          "if": {"properties": {"assessment": {"properties": {"status": {"enum": ["indeterminate", "error", "not_tested"]}}}}},
           "then": {"properties": {"assessment": {"properties": {"limitations": {"minItems": 1}}}}}
         },
         {
-          "if": {"properties": {"observations": {"contains": {"required": ["measurement"]}}}},
-          "then": {
-            "properties": {
-              "assessment": {"required": ["decision_rule"]},
-              "observations": {"contains": {"required": ["measurement"]}, "maxContains": 1}
-            }
-          }
+          "if": {"properties": {"assessment": {"properties": {"status": {"const": "not_tested"}}}}},
+          "then": {"properties": {"observations": {"maxItems": 0}}}
+        },
+        {
+          "properties": {"observations": {"contains": {"required": ["measurement"]}, "minContains": 0, "maxContains": 1}}
         }
       ]
     },
@@ -243,7 +264,7 @@
           }
         }
       },
-      "description": "MVP statistical profile: two-sided Wilson score interval without continuity or finite-population correction. Validate counts, value, and recomputed endpoints outside JSON Schema."
+      "description": "MVP statistical profile: two-sided Wilson score interval without continuity or finite-population correction. Counts, value and endpoints are recomputed by the verifier."
     },
     "coverage": {
       "type": "object",
@@ -255,19 +276,7 @@
         "sampling": {"const": "simple_random_without_replacement"},
         "seed": {"type": "integer", "minimum": 0}
       },
-      "description": "MVP sampling profile: examined distinct units from a named finite population identified by the evidence. Seed alone is not a reproducibility guarantee."
-    },
-    "decision_rule": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["observation_ref", "threshold", "comparator", "basis"],
-      "properties": {
-        "observation_ref": {"$ref": "#/$defs/id"},
-        "threshold": {"type": "number", "minimum": 0, "maximum": 1},
-        "comparator": {"enum": [">=", "<="]},
-        "basis": {"enum": ["point_estimate", "interval_bounds"]}
-      },
-      "description": "Must match the requirement policy. Basis selects the value or interval bounds; comparison and equality semantics are defined in README."
+      "description": "MVP sampling profile: examined distinct units from a named finite population identified by the evidence. Seed alone is not a reproducibility guarantee; retain the sampled unit identifiers."
     }
   }
 }
