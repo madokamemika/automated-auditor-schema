@@ -3,6 +3,10 @@
 Reviewer: **Opus** (Claude Code). Prior implementer: **Astra** (Codex). Date: 2026-09-24.
 Marks: **VERIFIED** means recomputed or tested in this session; **ASSERTED** means argued from a cited source without a local test.
 
+## Attribution clarification added by Codex after the user's correction
+
+This historical review is preserved below, including its judgments and mistakes. Its suggestion that distinctive ideas ought to originate with the user is not the current framing. The user explicitly clarified that AI tools provide and execute ideas while she controls the work and reads logs. Origin labels below are the reviewer's interpretations of an incomplete record, not independently established authorship. “Generic” or “distinctive” judgments do not establish origin or quality. No historical prompt or quotation has been rewritten to improve the user's apparent contribution.
+
 ## 1. Idea-origin ledger: what is generic and what is yours
 
 You asked me to flag generic material, because non-generic ideas are meant to come from you. The prompt log is the only evidence of origin, so this ledger is traced from `output/prompts.md` only.

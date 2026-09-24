@@ -1,4 +1,4 @@
-# Automated auditor result · MVP 0.5.0
+# Automated auditor result · MVP 0.6.0
 
 **Encode a traceable evidence-to-judgment chain.** One subject, one run, one evaluation per requirement.
 
@@ -26,7 +26,7 @@ The failed retrieval establishes missing evidence, not an inaccurate compute dec
 
 ## Evidence and uncertainty
 
-Verdicts are derived from observations via explicit decision rules; the auditor never asserts confidence it cannot justify.
+Self-reported confidence is labelled with its elicitation and calibration status and never decides a verdict; derived probabilities are recomputable from policy-owned assumptions.
 
 Optional `fact` records a Boolean value with its evidence pointer; `field_equals` rules fix the expected value and source. Optional `measurement` records a proportion, success count and Wilson interval. Its required `derivation` names cited JSON evidence and an RFC 6901 pointer to integer 0/1 outcomes. The verifier recounts those digest-checked bytes. The policy fixes the outcome pointer and required source-record fields; producers cannot select a more favorable array or suite. Source JSON must contain the matching `subject_sha256`. Optional `coverage` independently identifies pointers to sampled indices, population size, seed and method; their values, counts, uniqueness and index bounds are checked.
 
@@ -56,12 +56,27 @@ Regenerate with `python3 tools/build_example.py`; run `python3 -m unittest disco
 
 ## Assurance: auditing AI and auditing with AI
 
-Version 0.5.0 adds optional `assessment.assurance`. The example includes it on every evaluation. `integrity` is checked against verified cited bytes and their subject binding; it proves neither authenticity nor truth. `completeness` equals obtained/required substantive evidence items, whose scope and counts are assessor declarations in `completeness_basis`. A failed retrieval does not count as the missing training log. This differs from sampling coverage. `source_reliability` is a low/medium/high assessor judgment with a stated basis, alongside evidence provenance.
+Version 0.6.0 adds optional `assessment.assurance`. The example includes it on every evaluation. `integrity` is checked against verified cited bytes and their subject binding; it proves neither authenticity nor truth. `completeness` equals obtained/required substantive evidence items, whose scope and counts are assessor declarations in `completeness_basis`. A failed retrieval does not count as the missing training log. This differs from sampling coverage. `source_reliability` is a low/medium/high assessor judgment with a stated basis, alongside evidence provenance.
 
-`method` distinguishes deterministic rules, AI judges, human review and hybrid methods. AI/hybrid assessments require `judge_validation`: sample size, confusion counts, positive-class definition, and basis. FPR = FP/(FP+TN); FNR = FN/(FN+TP). Both class denominators must be positive. The example uses **synthetic** counts (97 TP, 3 FN, 98 TN, 2 FP; n=200), not a performed validation study.
+`judgment_source` distinguishes deterministic rules, AI judges, human review and hybrid methods. AI/hybrid assessments require pre-run `execution.auditor.judge_validation`: sample size, confusion counts, positive-class definition, and basis. FPR = FP/(FP+TN); FNR = FN/(FN+TP). Both class denominators must be positive. The example uses **synthetic** counts (97 TP, 3 FN, 98 TN, 2 FP; n=200), not a performed validation study.
 
-`confidence` is supplemental Bayesian probability, not model self-confidence. The implemented model uses a Beta(1,1) prior and independent binomial observations with q = p(1−FNR)+(1−p)FPR. A deterministic 20,000-point midpoint grid computes posterior mass satisfying the policy threshold; the verifier recomputes it within 1e-6. FPR/FNR are fixed estimates: uncertainty in validation rates, population shift and correlation are not propagated. The grid is an illustrative numerical approximation, not a certified error bound. Rates and validation counts are declared inputs, not authenticated evidence.
+`assessment.assurance.posterior` is supplemental Bayesian probability, not model self-confidence. The implemented model uses a Beta(1,1) prior and independent binomial observations with q = p(1−FNR)+(1−p)FPR. A deterministic 20,000-point midpoint grid computes posterior mass satisfying the policy threshold; the verifier recomputes it within 1e-6. FPR/FNR are fixed estimates: uncertainty in validation rates, population shift and correlation are not propagated. The grid is an illustrative numerical approximation, not a certified error bound. Rates and validation counts are declared inputs, not authenticated evidence.
 
 The policy verdict uses the original raw-label Wilson rule; Bayesian confidence uses additional judge-error assumptions and **never changes the verdict**. Probability is `null` with a reason when no likelihood model exists. `conclusion.overall_confidence` explicitly remains null: no joint model or independence assumption justifies multiplying probabilities across requirements. This is an explicit unknown, not zero confidence. Full judge-error uncertainty propagation and a joint model remain future work.
 
 **Sensitivity, not an uncertainty interval:** with FPR fixed at 0.02, changing assumed FNR from 0.01 to 0.03 to 0.06 changes the example posterior from 0.396 to 0.786 to 0.971. These are illustrative scenarios, not empirically established plausible bounds. The verifier fixes the uniform prior and event definition; it does not authenticate the assumed judge rates. The example's 0.786 must be read only as a conditional model calculation.
+
+
+## v0.6.0: self-report and derived probability
+
+`assessment.agent_confidence` and `conclusion.agent_confidence` are optional self-reports with a value, elicitation method and calibration status. Calibrated reports require a validation artifact and Brier score or expected calibration error. These statistics remain reported calibration claims, not proof of calibration. The example values (0.8 per assessment, 0.6 overall) are AI-authored synthetic placeholders, not confidence elicited from an actual auditor. They do not enter verdicts or aggregation.
+
+Judge error is a pre-run property in `execution.auditor.judge_validation`, shared by this single-judge profile. The verifier checks `validated_at` precedes the run, verifies the validation artifact digest, and derives rates from the confusion counts stored in that artifact. The embedded artifact contains synthetic aggregate validation counts, not a real retained validation corpus; its truth, representativeness and transfer to the audit population remain unverified. Rule-only auditors may omit the block. Multiple judges need a future profile.
+
+`requirement.decision_rule.bayesian_model` owns the supported uniform prior, event, positive class and model identifier. The verifier compares the per-assessment posterior's assumptions with that policy. Consumers must still choose their expected policy independently.
+
+## Resolution of open design questions
+
+For this illustrative submission, the threat model is inconsistent or manipulated report contents; signatures, independent collection and runtime attestation are outside scope. Both auditing AI and auditing with AI are represented. The consumer is a reviewer; no deployment authorization is implied. The profile deliberately retains two-sided Wilson intervals with the documented binomial approximation, the `attestation` container (distinct from OSCAL assessor statements), provenance plus ordinal reliability, and closed schema objects with versioned evolution rather than an extension escape hatch. These are prototype choices made by AI tools under the user's instruction to finish, not claims that the user invented each choice.
+
+`integrity` is retained as a checked byte/subject-binding indicator. It may be false where cited records cannot establish subject binding; a strict verifier still rejects missing or mismatched artifact bytes. This intentional redundancy does not justify weakening digest validation. Broader authentication, richer reliability axes, alternative intervals, joint probability, and multiple judges remain explicitly outside this release. No optional confidence-gap alert is implemented.
