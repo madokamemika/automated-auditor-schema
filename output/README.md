@@ -34,10 +34,10 @@ Verdicts are derived from observations via explicit decision rules; the auditor 
 
 **The policy, not the auditor, owns the rule.** `requirement.decision_rule` fixes comparator, threshold, basis, interval level and method before evaluation. The matching evaluation has exactly one measured observation, whose interval must use that level and method; a requirement without a rule has no measured observation. In the terms of ILAC-G8 and JCGM 106:
 
-- `interval_bounds` is **guarded acceptance** with the interval as guard band. For `>=`: pass when lower ≥ threshold, fail when upper < threshold. For `<=`: pass when upper ≤ threshold, fail when lower > threshold. Otherwise `indeterminate`.
+- `interval_bounds` is a **non-binary rule**: guarded acceptance and guarded rejection with the interval as guard band, and `indeterminate` as the zone where no conformity statement is made. For `>=`: pass when lower ≥ threshold, fail when upper < threshold. For `<=`: pass when upper ≤ threshold, fail when lower > threshold. Otherwise `indeterminate`.
 - `point_estimate` is **simple acceptance**: compare `measurement.value` directly; satisfied passes, otherwise fails. The reported interval does not decide the verdict.
 
-A two-sided interval at level 1−α gives each one-sided decision a nominal error rate of α/2 (2.5% at 95%). Display intervals to three decimals; retain full-precision JSON bounds. No assessor-confidence score is allowed.
+A two-sided interval at level 1−α gives each one-sided decision a nominal error rate of about α/2 (2.5% at 95%); Wilson coverage is approximate and can dip below nominal for some n and p. Display intervals to three decimals; retain full-precision JSON bounds. No assessor-confidence score is allowed.
 
 Evidence `reliability` declares `operator_supplied`, `independently_collected`, or `attested`; `reliability_basis` explains origin and verification limits. These are provenance claims, not a ranking or proof of truth. Consumers must verify the attestation behind an `attested` label.
 
@@ -46,6 +46,8 @@ Evidence `reliability` declares `operator_supplied`, `independently_collected`, 
 Pass and fail require supporting observations; missing evidence alone establishes neither. `indeterminate` means the procedure ran but the evidence does not decide the requirement. `error` means the auditor itself failed to complete the procedure (crash, timeout, tool fault); remediation belongs to the auditor operator, not the auditee. `not_tested` means unattempted and carries no observations. `not_applicable` requires evidence and an applicability rationale. Indeterminate, error and untested assessments require limitations.
 
 `all-requirements-v2` applies in order: any fail → fail; all not-tested → not-tested; any indeterminate, error or not-tested → indeterminate; all not-applicable → not-applicable; otherwise pass. `coverage_complete` is true exactly when no evaluation is indeterminate, error or not-tested. The example concludes fail with incomplete coverage.
+
+Mappings for consumers of binary formats: SLSA VSA `verificationResult` is `PASSED` only for `pass` (every other status is `FAILED`); OSCAL `finding.target.status` is `satisfied` for `pass`, `not-satisfied` with reason `fail` for `fail`, and `not-satisfied` with reason `other` for `indeterminate` or `error`. `not_applicable` and `not_tested` have no OSCAL finding.
 
 ## Integrity and validation contract
 

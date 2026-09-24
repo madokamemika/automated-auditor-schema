@@ -150,7 +150,7 @@
         "interval_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
         "interval_method": {"const": "wilson_score"}
       },
-      "description": "Policy-owned rule, fixed before evaluation. interval_bounds is guarded acceptance (the interval is the guard band); point_estimate is simple acceptance. Semantics in README."
+      "description": "Policy-owned rule, fixed before evaluation. interval_bounds is a non-binary rule (guarded acceptance and rejection, the interval as guard band, indeterminate between); point_estimate is simple acceptance. Semantics in README."
     },
     "evidence": {
       "type": "object",

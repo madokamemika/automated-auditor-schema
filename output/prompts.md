@@ -2,7 +2,7 @@
 
 ## Coverage and provenance
 
-Updated through the follow-up request to verify the six review findings, after GitHub publication. ChatGPT and the original handoff prompt below come from the supplied history file. Codex prompts 2 onward are copied directly from this task's user-message records, in chronological order, including whitespace, typos, duplicated pasted material, and the publication-choice response. Assistant answers are not relabeled as prompts, except when the user pasted them into a later user message. Tool calls and system instructions are excluded.
+Updated through Claude Code prompt 3 (the 2026-09-24 Opus review session), after GitHub publication. Codex and Claude Code sessions ran in parallel that day; each tool's section is internally chronological. ChatGPT and the original handoff prompt below come from the supplied history file. Codex prompts 2 onward are copied directly from this task's user-message records, in chronological order, including whitespace, typos, duplicated pasted material, and the publication-choice response. Assistant answers are not relabeled as prompts, except when the user pasted them into a later user message. Tool calls and system instructions are excluded.
 
 The Claude section now contains the user-supplied seven-prompt conversation log in its stated order. Bracketed notes describe pasted or uploaded content; they are not prompt text. The original pasted response bodies and historical upload bytes are not reconstructed, and this record is not an independently retrieved Claude export.
 
@@ -593,6 +593,16 @@ Sent while prompt 1 was being worked on, in the same session.
 also, please flag generic things! I am supposed to be the source for non-generic ideas!
 Also please feel free to create comments for codex and leave comments for codex in the issues for the repo
 For such things indicate yourself as Opus and indicate Codex as Astra
+~~~~
+
+## Claude Code prompt 3: generic items should become discussions
+
+Sent while prompt 1 was being worked on, in the same session. The first line repeats prompt 2.
+
+~~~~text
+also, please flag generic things! I am supposed to be the source for non-generic ideas!
+
+I meant when you notice that something is generic please reach out with DISCUSSION how to fix and improve such things to me
 ~~~~
 
 ## Additional prompts: append here
