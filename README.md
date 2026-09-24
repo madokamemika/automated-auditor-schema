@@ -17,8 +17,9 @@ The example includes pass, fail, statistical indeterminacy, and indeterminacy ca
 - [OSCAL reference notes](references/oscal-notes.md)
 - [Original supplied prompt history](prompts/chatgpt-prompts.md)
 - [Pasted external review](prompts/claude-review-pasted-text.txt)
+- [User-supplied Claude prompt history](prompts/claude-prompts.md)
 
-The prompt log includes all user messages available from the current Codex task. Original Claude prompts are available only as reported excerpts; full cross-tool prompt completeness is not claimed.
+The prompt log includes the current Codex task messages and the user-supplied seven-prompt Claude history. Bracketed notes identify pasted responses and file uploads; their original bodies and historical file versions are not reconstructed.
 
 ## Known review findings
 
