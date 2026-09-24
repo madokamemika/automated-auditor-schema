@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:automated-auditor:result:0.3.0",
+  "title": "Automated Auditor Result MVP",
+  "description": "Single subject, single run, one evaluation per declared requirement. See README for mandatory semantic and integrity checks.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "metadata",
+    "subject",
+    "audit_basis",
+    "execution",
+    "evidence",
+    "evaluations",
+    "conclusion",
+    "attestation"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.3.0"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result_id", "title", "generated_at", "synthetic"],
+      "properties": {
+        "result_id": {"$ref": "#/$defs/id"},
+        "title": {"$ref": "#/$defs/text"},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "synthetic": {"type": "boolean"}
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "version", "scope", "artifact"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "name": {"$ref": "#/$defs/text"},
+        "version": {"$ref": "#/$defs/text"},
+        "scope": {"$ref": "#/$defs/text"},
+        "artifact": {"$ref": "#/$defs/artifact"}
+      }
+    },
+    "audit_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "requirements"],
+      "properties": {
+        "name": {"$ref": "#/$defs/text"},
+        "version": {"$ref": "#/$defs/text"},
+        "requirements": {"type": "array", "items": {"$ref": "#/$defs/requirement"}, "minItems": 1}
+      },
+      "description": "The complete normative basis for this result; criterion and applicability texts are authoritative for this MVP."
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "auditor", "started_at", "ended_at", "parameters", "environment"],
+      "properties": {
+        "run_id": {"$ref": "#/$defs/id"},
+        "auditor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version", "artifacts"],
+          "properties": {
+            "name": {"$ref": "#/$defs/text"},
+            "version": {"$ref": "#/$defs/text"},
+            "artifacts": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["implementation", "configuration"],
+              "properties": {"implementation": {"$ref": "#/$defs/artifact"}, "configuration": {"$ref": "#/$defs/artifact"}},
+              "description": "Exact code, container or model artifact and effective configuration. Digests identify declared inputs; they do not authenticate execution."
+            }
+          }
+        },
+        "started_at": {"type": "string", "format": "date-time"},
+        "ended_at": {"type": "string", "format": "date-time"},
+        "parameters": {"type": "object", "additionalProperties": {"type": ["string", "number", "boolean", "null"]}},
+        "environment": {"$ref": "#/$defs/text"}
+      }
+    },
+    "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}, "minItems": 0},
+    "evaluations": {"type": "array", "items": {"$ref": "#/$defs/evaluation"}, "minItems": 1},
+    "conclusion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["aggregation", "status", "coverage_complete"],
+      "properties": {
+        "aggregation": {"const": "all-requirements-v1"},
+        "status": {"$ref": "#/$defs/status"},
+        "coverage_complete": {"type": "boolean"}
+      },
+      "description": "Derived from every evaluation under the rules in README; no independent narrative or selectable subset."
+    },
+    "attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "canonicalization", "result_sha256"],
+      "properties": {
+        "mode": {"const": "digest-only"},
+        "canonicalization": {"const": "RFC8785"},
+        "result_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "description": "SHA-256 of RFC8785 canonicalized entire result with ONLY attestation.result_sha256 removed. Integrity commitment, not an authenticated signature."
+    }
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1},
+    "id": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{0,63}(?![\\s\\S])"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$", "minLength": 64, "maxLength": 64},
+    "status": {"enum": ["pass", "fail", "indeterminate", "not_applicable", "not_tested"]},
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["locator", "media_type", "sha256"],
+      "properties": {
+        "locator": {"type": "string", "format": "uri"},
+        "media_type": {"$ref": "#/$defs/text"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "content": {"type": "string"}
+      },
+      "description": "Digest of exact artifact bytes. If content is present, bytes are UTF-8(content), with no normalization or added newline."
+    },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "criterion", "applicability"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "criterion": {"$ref": "#/$defs/text"},
+        "applicability": {"$ref": "#/$defs/text"}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "artifact",
+        "acquired_at",
+        "acquisition_method",
+        "collector",
+        "limitations",
+        "reliability",
+        "reliability_basis"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "kind": {"enum": ["configuration", "document", "measurement", "execution_log"]},
+        "artifact": {"$ref": "#/$defs/artifact"},
+        "acquired_at": {"type": "string", "format": "date-time"},
+        "acquisition_method": {"$ref": "#/$defs/text"},
+        "collector": {"$ref": "#/$defs/text"},
+        "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}, "minItems": 0},
+        "reliability": {"enum": ["independently_collected", "operator_supplied", "attested"]},
+        "reliability_basis": {"$ref": "#/$defs/text"}
+      },
+      "description": "Reliability is a declared provenance category, not a trust score. Basis identifies the operator, independent collector, or attestation and verification limits. No digest for unavailable data."
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "claim", "evidence_refs"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/id"}, "minItems": 1, "uniqueItems": true},
+        "measurement": {"$ref": "#/$defs/measurement"},
+        "coverage": {"$ref": "#/$defs/coverage"},
+        "claim": {"$ref": "#/$defs/text"}
+      },
+      "description": "A checkable proposition including the observed value or state, grounded in cited evidence."
+    },
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "observation_refs", "rationale", "limitations"],
+      "properties": {
+        "status": {"$ref": "#/$defs/status"},
+        "observation_refs": {"type": "array", "items": {"$ref": "#/$defs/id"}, "minItems": 0, "uniqueItems": true},
+        "rationale": {"$ref": "#/$defs/text"},
+        "limitations": {"type": "array", "items": {"$ref": "#/$defs/text"}, "minItems": 0},
+        "decision_rule": {"$ref": "#/$defs/decision_rule"}
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "requirement_ref", "procedure", "observations", "assessment"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "requirement_ref": {"$ref": "#/$defs/id"},
+        "procedure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "description"],
+          "properties": {"method": {"enum": ["inspect", "test", "interview"]}, "description": {"$ref": "#/$defs/text"}}
+        },
+        "observations": {"type": "array", "items": {"$ref": "#/$defs/observation"}, "minItems": 0},
+        "assessment": {"$ref": "#/$defs/assessment"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"assessment": {"properties": {"status": {"enum": ["pass", "fail", "not_applicable"]}}}}},
+          "then": {
+            "properties": {"observations": {"minItems": 1}, "assessment": {"properties": {"observation_refs": {"minItems": 1}}}}
+          }
+        },
+        {
+          "if": {"properties": {"assessment": {"properties": {"status": {"enum": ["indeterminate", "not_tested"]}}}}},
+          "then": {"properties": {"assessment": {"properties": {"limitations": {"minItems": 1}}}}}
+        },
+        {
+          "if": {"properties": {"observations": {"contains": {"required": ["measurement"]}}}},
+          "then": {
+            "properties": {
+              "assessment": {"required": ["decision_rule"]},
+              "observations": {"contains": {"required": ["measurement"]}, "maxContains": 1}
+            }
+          }
+        }
+      ]
+    },
+    "measurement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "unit", "successes", "interval"],
+      "properties": {
+        "value": {"type": "number", "minimum": 0, "maximum": 1},
+        "unit": {"const": "proportion"},
+        "successes": {"type": "integer", "minimum": 0},
+        "interval": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lower", "upper", "level", "method", "sample_size"],
+          "properties": {
+            "lower": {"type": "number", "minimum": 0, "maximum": 1},
+            "upper": {"type": "number", "minimum": 0, "maximum": 1},
+            "level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+            "method": {"const": "wilson_score"},
+            "sample_size": {"type": "integer", "minimum": 1}
+          }
+        }
+      },
+      "description": "MVP statistical profile: two-sided Wilson score interval without continuity or finite-population correction. Validate counts, value, and recomputed endpoints outside JSON Schema."
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["examined", "population", "sampling", "seed"],
+      "properties": {
+        "examined": {"type": "integer", "minimum": 1},
+        "population": {"type": "integer", "minimum": 1},
+        "sampling": {"const": "simple_random_without_replacement"},
+        "seed": {"type": "integer", "minimum": 0}
+      },
+      "description": "MVP sampling profile: examined distinct units from a named finite population identified by the evidence. Seed alone is not a reproducibility guarantee."
+    },
+    "decision_rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observation_ref", "threshold", "comparator", "basis"],
+      "properties": {
+        "observation_ref": {"$ref": "#/$defs/id"},
+        "threshold": {"type": "number", "minimum": 0, "maximum": 1},
+        "comparator": {"enum": [">=", "<="]},
+        "basis": {"enum": ["point_estimate", "interval_bounds"]}
+      },
+      "description": "Must match the requirement policy. Basis selects the value or interval bounds; comparison and equality semantics are defined in README."
+    }
+  }
+}

@@ -1,0 +1,111 @@
+Corrections
+
+1. The interval numbers are slightly wrong. A Wilson 95% interval for 0.94 with n=200 is [0.898, 0.965], not [0.89, 0.97]. It still straddles 0.95, so the example still works, but an evaluator who checks the arithmetic will catch it. Use three decimals.
+
+2. The claim field isn't a claim. "Refusal rate on hazardous-request eval suite" is a label. A claim should be a checkable proposition: "Model refused 188 of 200 sampled hazardous requests (0.94)." Otherwise observation and measurement blur together, which undercuts the traceability thesis.
+
+3. The decision rule is prose. "rule": "pass if interval.lower >= ..." is not machine-evaluable, so a verifier can't recompute the verdict. Replace it with an enum:
+
+json
+"decision_rule": {
+  "threshold": 0.95,
+  "comparator": ">=",
+  "basis": "interval_bounds"
+}
+
+basis options: point_estimate | interval_bounds. With interval_bounds, the pass/fail/indeterminate logic is defined once in the README and applies everywhere.
+
+Paste-ready addendum for BRIEF.md
+markdown
+## Uncertainty model (added)
+
+Do not use a bare `confidence` number. Represent uncertainty in three checkable places:
+
+1. `observation.measurement` (optional): value, unit, and `interval`
+   {lower, upper, level, method, sample_size}. Only for quantitative observations.
+2. `observation.coverage` (optional): {examined, population, sampling, seed}.
+3. `evidence.reliability` (required enum):
+   independently_collected | operator_supplied | attested.
+
+Verdicts are derived, not asserted. `assessment.decision_rule` =
+{threshold, comparator, basis: point_estimate | interval_bounds}.
+With interval_bounds: pass if the whole interval satisfies the comparator,
+fail if none of it does, indeterminate if it straddles the threshold.
+
+`observation.claim` must be a checkable proposition that includes the observed
+value, not a label.
+
+Two sources of `indeterminate` must both appear in the example:
+- evidence unavailable (no measurement possible)
+- evidence present but interval straddles threshold
+
+Example file: use an AI-relevant subject (a model checkpoint audited against a
+deployment policy). Three evaluations:
+- binary config/policy check → pass or fail, no measurement
+- hazardous-request refusal rate, 188/200 = 0.940, Wilson 95% [0.898, 0.965],
+  threshold >= 0.95 → indeterminate
+- training compute declaration, logs not provided → indeterminate
+
+README must include one line: "Verdicts are derived from observations via
+explicit decision rules; the auditor never asserts confidence it cannot justify."
+
+Remember to log this prompt and the previous one in prompts.md.
+
+auditor-result.schema.json
+193 lines
+JSON
+example-result.json
+184 lines
+JSON
+prompts.md
+87 lines
+MD
+README.md
+48 lines
+MD
+Ran 2 commands
+
+I checked it. Technically it holds up: the schema is valid Draft 2020-12, the example validates with format checking on, all three artifact hashes recompute correctly, and the RFC 8785 result hash matches. That is more rigor than most one-hour submissions will have.
+
+The problems are in content and packaging. Codex quietly dropped several things we agreed on, and the prompt log is incomplete.
+
+What's strong
+Element	Why it works
+Evidence → observation → assessment chain	Enforced structurally, including the conditional allOf rules requiring observations for pass/fail
+Failed acquisition as evidence	Recording the 403 as hashed evidence, and refusing to treat it as proof backups failed, is the best single idea in the package
+Deterministic aggregation	all-requirements-v1 is ordered and testable, and coverage_complete is defined exactly
+Three-layer validation contract	It honestly separates what JSON Schema enforces from what application logic must check
+Boundaries section	It says plainly that digest-only proves neither origin nor truth, which pre-empts the obvious critique
+What's missing, in priority order
+
+1. The prompt log is incomplete (must fix). The assignment says "all prompts." The prompts you sent me here are not in the log:
+
+"does this look to you as we are making task ... correctly//moving in the right direction"
+"for confidence i d do confidence intervals of who idk give ideas?"
+the pasted reply (logged as a prompt with a note that it was pasted)
+this message, if you count file uploads
+
+Add a "Claude prompts" section. Also, the file has two "append here" headers; delete the duplicate.
+
+2. The uncertainty model was dropped. The README explicitly chooses "without inventing confidence scores" and uses limitations lists instead. That is defensible, and arguably cleaner than a bare number. But the interval-plus-decision-rule design, and the second kind of indeterminacy (evidence present but inconclusive), are gone. You have two options:
+
+Accept it and add one README sentence: "Quantitative observations with sampling uncertainty (measurement intervals, decision rules) are deferred to v0.2." Cost: about 1 minute.
+Restore it by adding an optional measurement to observation and a decision_rule to assessment, plus a fourth evaluation. Cost: 10 to 15 minutes, and the hash has to be recomputed.
+
+Given the time budget, I'd take the first option.
+
+3. No "interpretation and assumptions" section. The task tests how you handle underspecification, and the README never states which ambiguities it resolved. The scope choices are good (single subject, single run, "object" meaning both the subject and the result), but they are implicit. Add three or four lines at the top.
+
+4. The auditor is still unbound. execution.auditor is name plus version, self-reported. The Boundaries section half-covers this ("model-based auditors would need a future execution profile"). Either add auditor.sha256 or state the gap explicitly in the deferred list.
+
+5. The example is generic. An invoice API with TLS, encryption, and backups reads as SOC 2, not AI governance. It works, and changing it now means regenerating every hash. I'd leave it, but you could add one README sentence noting the schema is domain-agnostic and naming an AI deployment audit as the intended use.
+
+Small cleanups
+Em dashes: 2 in README.md, 3 in prompts.md (in headers). Replace them with colons or commas. Only replace the ones in your text, not in verbatim prompts.
+Filename: the upload is auditor-result_schema.json, but the README and $id imply auditor-result.schema.json. Rename it so it matches.
+README last line says "supplied prompt history plus this implementation request." Update it once the Claude prompts are added.
+Recommended edit order (about 10 minutes)
+Add the Claude prompts to prompts.md and remove the duplicate header.
+Add a 4-line "Interpretation and assumptions" section to the README.
+Add one "Deferred" line covering auditor binding and measurement intervals.
+Fix the em dashes and the filename.
